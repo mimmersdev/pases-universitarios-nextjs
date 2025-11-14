@@ -1,0 +1,16 @@
+export const DB_CONFIGURATION = {
+    CHUNK_SIZES: {
+        COMPLEX_INSERT: 100,
+        SIMPLE_INSERT: 250,
+        SIMPLE_UPDATE: 1000,
+        COMPLEX_UPDATE: 500,
+        SIMPLE_QUERY: 10000,
+        COMPLEX_QUERY: 2500
+    },
+
+    CONNECTION: {
+        MAX_CONCURRENT_CHUNKS: 5,
+        TIMEOUT: 25000,
+        RETRY_ATTEMPTS: 2
+    }
+}

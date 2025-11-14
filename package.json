@@ -1,0 +1,58 @@
+{
+  "name": "pases-universitarios-nextjs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "db:push:dev": "cross-env NODE_ENV=development npx drizzle-kit push",
+    "db:generate": "npx drizzle-kit generate",
+    "db:migrate:dev": "cross-env NODE_ENV=development npx drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@heroui/react": "^2.8.5",
+    "@react-aria/i18n": "^3.12.13",
+    "@tanstack/react-form": "^1.23.8",
+    "@tanstack/react-query": "^5.90.5",
+    "axios": "^1.13.1",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.44.7",
+    "framer-motion": "^12.23.24",
+    "mimmers-core-nodejs": "github:mimmersdev/mimmers-core-nodejs",
+    "next": "16.0.0",
+    "pases-universitarios": "github:mimmersdev/pases-universitarios",
+    "pg": "^8.16.3",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/pg": "^8.15.6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
+    "drizzle-kit": "^0.31.6",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.20.6",
+    "typescript": "^5"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "0.25.0"
+    },
+    "@esbuild-kit/esm-loader": {
+      "esbuild": "0.25.0"
+    },
+    "drizzle-kit": {
+      "esbuild": "0.25.0"
+    }
+  }
+}
