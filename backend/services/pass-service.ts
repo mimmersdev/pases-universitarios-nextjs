@@ -85,17 +85,27 @@ export class PassService {
 
         for(const pass of passes) {
             if(pass.googleWalletObjectID !== null) {
-                const googleProps = await GoogleManagerService.getGoogleWalletIssuePropsFromPass(universityData, pass.careerName, pass.cityName, pass);
-                await googleWalletManager.updatePass(pass.googleWalletObjectID, googleProps);
-                await googleWalletManager.sendPassNotification(pass.googleWalletObjectID, header, body);               
+                try {
+                    const googleProps = await GoogleManagerService.getGoogleWalletIssuePropsFromPass(universityData, pass.careerName, pass.cityName, pass);
+                    await googleWalletManager.updatePass(pass.googleWalletObjectID, googleProps);
+                    await googleWalletManager.sendPassNotification(pass.googleWalletObjectID, header, body);               
+                } catch (error) {
+                    console.error('Error updating Google Wallet pass:', error);
+                }
             }
         }
 
-        await AppleWalletManager.sendSilentPushNotification(apnProvider, appleDevices.map((device) => ({
-            passSerialNumber: device.serialNumber,
-            pushToken: device.pushToken,
-            passTypeIdentifier: device.passTypeIdentifier,
-        })));
+        try {
+            await AppleWalletManager.sendSilentPushNotification(apnProvider, appleDevices.map((device) => ({
+                passSerialNumber: device.serialNumber,
+                pushToken: device.pushToken,
+                passTypeIdentifier: device.passTypeIdentifier,
+            })));
+
+        } catch (error) {
+            console.error('Error sending Apple Wallet push notification:', error);
+        }
+        
     }
 
     // Google Wallet methods
