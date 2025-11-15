@@ -1,21 +1,6 @@
+import { verifyAppleAuthToken } from "@/app/api/v1/middleware";
 import { AppleManagerService } from "@/backend/services/apple/apple-manager-service";
 import { NextRequest, NextResponse } from "next/server";
-import { getAppleAuthenticationToken, AppleWalletManager } from "pases-universitarios/wallet";
-
-const verifyToken = (request: NextRequest, serialNumber: string): boolean => {
-    console.log("headers");
-    console.log(request.headers);
-    const authHeader = request.headers.get('authorization');  
-    console.log("authHeader");
-    console.log(authHeader);
-    if (!authHeader || !authHeader.startsWith('ApplePass ')) {
-        return false;
-    }
-    
-    const providedToken = authHeader.replace('ApplePass ', '');
-    const expectedToken = getAppleAuthenticationToken(serialNumber, process.env.APPLE_TOKEN_SECRET!);
-    return providedToken === expectedToken;
-}
 
 export async function POST(
     request: NextRequest,
@@ -26,7 +11,7 @@ export async function POST(
         const body = await request.json();
         const { pushToken } = body;
 
-        if (!verifyToken(request, serialNumber)) {
+        if (!verifyAppleAuthToken(request, serialNumber)) {
             return NextResponse.json({ error: 'Unauthorized' },{ status: 410 });
         }
 
@@ -48,7 +33,7 @@ export async function DELETE(
     try {
         const { deviceLibraryIdentifier, passTypeIdentifier, serialNumber } = await context.params;
 
-        if (!verifyToken(request, serialNumber)) {
+        if (!verifyAppleAuthToken(request, serialNumber)) {
             return NextResponse.json({ error: 'Unauthorized' },{ status: 410 });
         }
 

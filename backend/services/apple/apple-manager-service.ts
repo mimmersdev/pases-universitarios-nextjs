@@ -33,8 +33,6 @@ export class AppleManagerService {
     public static async generatePass(pass: Pass): Promise<Buffer> {
         const serialNumber = pass.appleWalletSerialNumber;
         if(serialNumber === null) {
-            // Create new serial number
-            
             throw new Error('Serial number not found for pass: ' + pass.uniqueIdentifier);
         }
 
