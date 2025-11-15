@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npx drizzle-kit migrate",
     "start": "next start",
     "lint": "eslint",
     "db:push:dev": "cross-env NODE_ENV=development npx drizzle-kit push",
