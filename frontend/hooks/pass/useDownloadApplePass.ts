@@ -13,8 +13,11 @@ const downloadApplePass = async (
         }
     );
 
-    // Create a blob URL from the response
-    const blob = new Blob([response.data], { type: 'application/vnd.apple.pkpass' });
+    // response.data is already a Blob when responseType is 'blob'
+    // Use it directly to preserve the binary data integrity
+    const blob = response.data instanceof Blob 
+        ? response.data 
+        : new Blob([response.data], { type: 'application/vnd.apple.pkpass' });
     const url = window.URL.createObjectURL(blob);
     
     // Create a temporary anchor element and trigger download

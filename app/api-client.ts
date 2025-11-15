@@ -60,6 +60,10 @@ apiClient.interceptors.request.use(
 // Add response interceptor to automatically parse dates
 apiClient.interceptors.response.use(
   (response) => {
+    // Skip date parsing for blob responses (binary files)
+    if (response.data instanceof Blob) {
+      return response;
+    }
     response.data = parseDates(response.data);
     return response;
   },
