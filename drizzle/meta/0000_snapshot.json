@@ -1,0 +1,1540 @@
+{
+  "id": "410e682e-bb73-4614-9118-f2875af06508",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.apple_devices": {
+      "name": "apple_devices",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "unique_identifier": {
+          "name": "unique_identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "career_id": {
+          "name": "career_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "university_id": {
+          "name": "university_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "device_library_identifier": {
+          "name": "device_library_identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pass_type_identifier": {
+          "name": "pass_type_identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "push_token": {
+          "name": "push_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_apple_devices_unique_identifier": {
+          "name": "idx_apple_devices_unique_identifier",
+          "columns": [
+            {
+              "expression": "unique_identifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_apple_devices_career_id": {
+          "name": "idx_apple_devices_career_id",
+          "columns": [
+            {
+              "expression": "career_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_apple_devices_university_id": {
+          "name": "idx_apple_devices_university_id",
+          "columns": [
+            {
+              "expression": "university_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_apple_devices_device_library_identifier": {
+          "name": "idx_apple_devices_device_library_identifier",
+          "columns": [
+            {
+              "expression": "device_library_identifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_apple_devices_pass_type_identifier": {
+          "name": "idx_apple_devices_pass_type_identifier",
+          "columns": [
+            {
+              "expression": "pass_type_identifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_apple_devices_push_token": {
+          "name": "idx_apple_devices_push_token",
+          "columns": [
+            {
+              "expression": "push_token",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "apple_devices_unique_identifier_career_id_university_id_passes_unique_identifier_career_id_university_id_fk": {
+          "name": "apple_devices_unique_identifier_career_id_university_id_passes_unique_identifier_career_id_university_id_fk",
+          "tableFrom": "apple_devices",
+          "tableTo": "passes",
+          "columnsFrom": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ],
+          "columnsTo": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "uq_apple_devices": {
+          "name": "uq_apple_devices",
+          "nullsNotDistinct": false,
+          "columns": [
+            "unique_identifier",
+            "career_id",
+            "university_id",
+            "device_library_identifier",
+            "pass_type_identifier",
+            "push_token"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.boolean_tags": {
+      "name": "boolean_tags",
+      "schema": "",
+      "columns": {
+        "unique_identifier": {
+          "name": "unique_identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "career_id": {
+          "name": "career_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "university_id": {
+          "name": "university_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "boolean_tags_tag_id_tags_id_fk": {
+          "name": "boolean_tags_tag_id_tags_id_fk",
+          "tableFrom": "boolean_tags",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "boolean_tags_unique_identifier_career_id_university_id_passes_unique_identifier_career_id_university_id_fk": {
+          "name": "boolean_tags_unique_identifier_career_id_university_id_passes_unique_identifier_career_id_university_id_fk",
+          "tableFrom": "boolean_tags",
+          "tableTo": "passes",
+          "columnsFrom": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ],
+          "columnsTo": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "boolean_tags_unique_identifier_career_id_university_id_tag_id_pk": {
+          "name": "boolean_tags_unique_identifier_career_id_university_id_tag_id_pk",
+          "columns": [
+            "unique_identifier",
+            "career_id",
+            "university_id",
+            "tag_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.careers": {
+      "name": "careers",
+      "schema": "",
+      "columns": {
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "university_id": {
+          "name": "university_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "careers_university_id_universities_id_fk": {
+          "name": "careers_university_id_universities_id_fk",
+          "tableFrom": "careers",
+          "tableTo": "universities",
+          "columnsFrom": [
+            "university_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "careers_code_university_id_pk": {
+          "name": "careers_code_university_id_pk",
+          "columns": [
+            "code",
+            "university_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.cities": {
+      "name": "cities",
+      "schema": "",
+      "columns": {
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "university_id": {
+          "name": "university_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "cities_university_id_universities_id_fk": {
+          "name": "cities_university_id_universities_id_fk",
+          "tableFrom": "cities",
+          "tableTo": "universities",
+          "columnsFrom": [
+            "university_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "cities_code_university_id_pk": {
+          "name": "cities_code_university_id_pk",
+          "columns": [
+            "code",
+            "university_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.config": {
+      "name": "config",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "google_wallet_class_id": {
+          "name": "google_wallet_class_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.date_tags": {
+      "name": "date_tags",
+      "schema": "",
+      "columns": {
+        "unique_identifier": {
+          "name": "unique_identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "career_id": {
+          "name": "career_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "university_id": {
+          "name": "university_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "date_tags_tag_id_tags_id_fk": {
+          "name": "date_tags_tag_id_tags_id_fk",
+          "tableFrom": "date_tags",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "date_tags_unique_identifier_career_id_university_id_passes_unique_identifier_career_id_university_id_fk": {
+          "name": "date_tags_unique_identifier_career_id_university_id_passes_unique_identifier_career_id_university_id_fk",
+          "tableFrom": "date_tags",
+          "tableTo": "passes",
+          "columnsFrom": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ],
+          "columnsTo": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "date_tags_unique_identifier_career_id_university_id_tag_id_pk": {
+          "name": "date_tags_unique_identifier_career_id_university_id_tag_id_pk",
+          "columns": [
+            "unique_identifier",
+            "career_id",
+            "university_id",
+            "tag_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.list_tags": {
+      "name": "list_tags",
+      "schema": "",
+      "columns": {
+        "unique_identifier": {
+          "name": "unique_identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "career_id": {
+          "name": "career_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "university_id": {
+          "name": "university_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tag_option_id": {
+          "name": "tag_option_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "list_tags_tag_option_id_list_tags_options_id_fk": {
+          "name": "list_tags_tag_option_id_list_tags_options_id_fk",
+          "tableFrom": "list_tags",
+          "tableTo": "list_tags_options",
+          "columnsFrom": [
+            "tag_option_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "list_tags_unique_identifier_career_id_university_id_passes_unique_identifier_career_id_university_id_fk": {
+          "name": "list_tags_unique_identifier_career_id_university_id_passes_unique_identifier_career_id_university_id_fk",
+          "tableFrom": "list_tags",
+          "tableTo": "passes",
+          "columnsFrom": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ],
+          "columnsTo": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "list_tags_unique_identifier_career_id_university_id_tag_option_id_pk": {
+          "name": "list_tags_unique_identifier_career_id_university_id_tag_option_id_pk",
+          "columns": [
+            "unique_identifier",
+            "career_id",
+            "university_id",
+            "tag_option_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.list_tags_options": {
+      "name": "list_tags_options",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "list_tags_options_tag_id_tags_id_fk": {
+          "name": "list_tags_options_tag_id_tags_id_fk",
+          "tableFrom": "list_tags_options",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.numeric_tags": {
+      "name": "numeric_tags",
+      "schema": "",
+      "columns": {
+        "unique_identifier": {
+          "name": "unique_identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "career_id": {
+          "name": "career_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "university_id": {
+          "name": "university_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "numeric_tags_tag_id_tags_id_fk": {
+          "name": "numeric_tags_tag_id_tags_id_fk",
+          "tableFrom": "numeric_tags",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "numeric_tags_unique_identifier_career_id_university_id_passes_unique_identifier_career_id_university_id_fk": {
+          "name": "numeric_tags_unique_identifier_career_id_university_id_passes_unique_identifier_career_id_university_id_fk",
+          "tableFrom": "numeric_tags",
+          "tableTo": "passes",
+          "columnsFrom": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ],
+          "columnsTo": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "numeric_tags_unique_identifier_career_id_university_id_tag_id_pk": {
+          "name": "numeric_tags_unique_identifier_career_id_university_id_tag_id_pk",
+          "columns": [
+            "unique_identifier",
+            "career_id",
+            "university_id",
+            "tag_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pass_updates": {
+      "name": "pass_updates",
+      "schema": "",
+      "columns": {
+        "unique_identifier": {
+          "name": "unique_identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "career_id": {
+          "name": "career_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "university_id": {
+          "name": "university_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_to_pay": {
+          "name": "total_to_pay",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_due_date": {
+          "name": "end_due_date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "pass_updates_unique_identifier_career_id_university_id_passes_unique_identifier_career_id_university_id_fk": {
+          "name": "pass_updates_unique_identifier_career_id_university_id_passes_unique_identifier_career_id_university_id_fk",
+          "tableFrom": "pass_updates",
+          "tableTo": "passes",
+          "columnsFrom": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ],
+          "columnsTo": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "pass_updates_unique_identifier_career_id_university_id_pk": {
+          "name": "pass_updates_unique_identifier_career_id_university_id_pk",
+          "columns": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.passes": {
+      "name": "passes",
+      "schema": "",
+      "columns": {
+        "unique_identifier": {
+          "name": "unique_identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "university_id": {
+          "name": "university_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "city_id": {
+          "name": "city_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "career_id": {
+          "name": "career_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "semester": {
+          "name": "semester",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "enrollment_year": {
+          "name": "enrollment_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payment_reference": {
+          "name": "payment_reference",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payment_status": {
+          "name": "payment_status",
+          "type": "payment_status",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pass_status": {
+          "name": "pass_status",
+          "type": "pass_status",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_to_pay": {
+          "name": "total_to_pay",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_due_date": {
+          "name": "start_due_date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_due_date": {
+          "name": "end_due_date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cashback": {
+          "name": "cashback",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "online_payment_url": {
+          "name": "online_payment_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "academic_calendar_url": {
+          "name": "academic_calendar_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "graduated": {
+          "name": "graduated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "currently_studying": {
+          "name": "currently_studying",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "google_wallet_object_id": {
+          "name": "google_wallet_object_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "apple_wallet_serial_number": {
+          "name": "apple_wallet_serial_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "google_installation_status": {
+          "name": "google_installation_status",
+          "type": "installation_status",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Pending'"
+        },
+        "apple_installation_status": {
+          "name": "apple_installation_status",
+          "type": "installation_status",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Pending'"
+        },
+        "notification_count": {
+          "name": "notification_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "last_notification_date": {
+          "name": "last_notification_date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_passes_unique_identifier": {
+          "name": "idx_passes_unique_identifier",
+          "columns": [
+            {
+              "expression": "unique_identifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_payment_status": {
+          "name": "idx_passes_payment_status",
+          "columns": [
+            {
+              "expression": "payment_status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_pass_status": {
+          "name": "idx_passes_pass_status",
+          "columns": [
+            {
+              "expression": "pass_status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_city_id": {
+          "name": "idx_passes_city_id",
+          "columns": [
+            {
+              "expression": "city_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_career_id": {
+          "name": "idx_passes_career_id",
+          "columns": [
+            {
+              "expression": "career_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_career_payment": {
+          "name": "idx_passes_career_payment",
+          "columns": [
+            {
+              "expression": "career_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "payment_status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_status_dates": {
+          "name": "idx_passes_status_dates",
+          "columns": [
+            {
+              "expression": "pass_status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "start_due_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "end_due_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_career_year_semester": {
+          "name": "idx_passes_career_year_semester",
+          "columns": [
+            {
+              "expression": "career_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "enrollment_year",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "semester",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_start_due_date": {
+          "name": "idx_passes_start_due_date",
+          "columns": [
+            {
+              "expression": "start_due_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_end_due_date": {
+          "name": "idx_passes_end_due_date",
+          "columns": [
+            {
+              "expression": "end_due_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_created_at": {
+          "name": "idx_passes_created_at",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_currently_studying": {
+          "name": "idx_passes_currently_studying",
+          "columns": [
+            {
+              "expression": "currently_studying",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_google_wallet_object_id": {
+          "name": "idx_passes_google_wallet_object_id",
+          "columns": [
+            {
+              "expression": "google_wallet_object_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_passes_apple_wallet_serial_number": {
+          "name": "idx_passes_apple_wallet_serial_number",
+          "columns": [
+            {
+              "expression": "apple_wallet_serial_number",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "passes_university_id_universities_id_fk": {
+          "name": "passes_university_id_universities_id_fk",
+          "tableFrom": "passes",
+          "tableTo": "universities",
+          "columnsFrom": [
+            "university_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "passes_city_id_university_id_cities_code_university_id_fk": {
+          "name": "passes_city_id_university_id_cities_code_university_id_fk",
+          "tableFrom": "passes",
+          "tableTo": "cities",
+          "columnsFrom": [
+            "city_id",
+            "university_id"
+          ],
+          "columnsTo": [
+            "code",
+            "university_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "passes_career_id_university_id_careers_code_university_id_fk": {
+          "name": "passes_career_id_university_id_careers_code_university_id_fk",
+          "tableFrom": "passes",
+          "tableTo": "careers",
+          "columnsFrom": [
+            "career_id",
+            "university_id"
+          ],
+          "columnsTo": [
+            "code",
+            "university_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "passes_unique_identifier_career_id_university_id_pk": {
+          "name": "passes_unique_identifier_career_id_university_id_pk",
+          "columns": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "uq_passes": {
+          "name": "uq_passes",
+          "nullsNotDistinct": false,
+          "columns": [
+            "unique_identifier",
+            "career_id",
+            "university_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tags": {
+      "name": "tags",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "university_id": {
+          "name": "university_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "tag_type",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tags_university_id_universities_id_fk": {
+          "name": "tags_university_id_universities_id_fk",
+          "tableFrom": "tags",
+          "tableTo": "universities",
+          "columnsFrom": [
+            "university_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.universities": {
+      "name": "universities",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.installation_status": {
+      "name": "installation_status",
+      "schema": "public",
+      "values": [
+        "Pending",
+        "Installed"
+      ]
+    },
+    "public.pass_status": {
+      "name": "pass_status",
+      "schema": "public",
+      "values": [
+        "Active",
+        "Inactive"
+      ]
+    },
+    "public.payment_status": {
+      "name": "payment_status",
+      "schema": "public",
+      "values": [
+        "Due",
+        "Overdue",
+        "Paid"
+      ]
+    },
+    "public.tag_type": {
+      "name": "tag_type",
+      "schema": "public",
+      "values": [
+        "numeric",
+        "date",
+        "boolean",
+        "list"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
