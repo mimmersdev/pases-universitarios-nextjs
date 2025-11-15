@@ -64,6 +64,7 @@ export class AppleManagerService {
                 key: "informationField",
                 value: pass.informationField,
                 label: "Información Extra",
+                changeMessage: "Nueva Notificación: %@",
             }
         ];
         if(pass.onlinePaymentLink !== null) {
