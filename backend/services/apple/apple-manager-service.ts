@@ -56,6 +56,11 @@ export class AppleManagerService {
                 key: "totalToPay",
                 value: pass.totalToPay.toString(),
                 label: "Total a pagar",
+            },
+            {
+                key: "informationField",
+                value: pass.informationField,
+                label: "Información Extra",
             }
         ];
         if(pass.onlinePaymentLink !== null) {

@@ -8,6 +8,7 @@ import { usePaginatedPasses } from "@/frontend/hooks/pass/usePaginatedPasses";
 import { useEffect, useState } from "react";
 import ViewPassModal from "./components/viewPassModal";
 import UploadPassesModal from "./components/uploadPassesModal";
+import SendNotificationModal from "./components/sendNotificationModal";
 import { FilterTags, Pass } from "pases-universitarios";
 import { EyeIcon, DocumentArrowUpIcon, BellIcon, ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { passStatusToLabel, paymentStatusToLabel } from "@/domain/Labels";
@@ -24,6 +25,7 @@ export default function PassesPage() {
     const { data: passes, isLoading } = usePaginatedPasses(universityId as string, { page, size: 10, filters: debouncedFilters });
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [selectedPass, setSelectedPass] = useState<Pass | null>(null);
 
     // Debounce filters: wait 1 second after user stops typing
@@ -162,10 +164,15 @@ export default function PassesPage() {
                 </Table>
                 <div className="mt-4">
                     <Tooltip content="Envia notificaciones a todos los pases que se encuentren bajo los filtros aplicados.">
-                        <Button startContent={<BellIcon className="w-5 h-5" />} color="success" onPress={() => setIsUploadModalOpen(true)}>Enviar Notificaciones ({passes?.total ?? 0})</Button>
+                        <Button 
+                            startContent={<BellIcon className="w-5 h-5" />} 
+                            color="success" 
+                            onPress={() => setIsNotificationModalOpen(true)}
+                            isDisabled={!passes || passes.total === 0}
+                        >
+                            Enviar Notificaciones ({passes?.total ?? 0})
+                        </Button>
                     </Tooltip>
-
-
                 </div>
 
                 {selectedPass && (
@@ -180,6 +187,14 @@ export default function PassesPage() {
                     universityId={universityId as string}
                     open={isUploadModalOpen}
                     onClose={() => setIsUploadModalOpen(false)}
+                />
+
+                <SendNotificationModal
+                    universityId={universityId as string}
+                    filters={debouncedFilters}
+                    open={isNotificationModalOpen}
+                    onClose={() => setIsNotificationModalOpen(false)}
+                    totalPasses={passes?.total}
                 />
             </Container>
         </Section>

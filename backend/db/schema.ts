@@ -77,6 +77,7 @@ export const passes = pgTable('passes', {
     appleInstallationStatus: installationStatusEnum('apple_installation_status').notNull().default(InstallationStatus.Pending),
     notificationCount: integer('notification_count').notNull().default(0),
     lastNotificationDate: timestamp('last_notification_date', { withTimezone: true }),
+    informationField: text('information_field').notNull().default(''),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 }, (t) => [

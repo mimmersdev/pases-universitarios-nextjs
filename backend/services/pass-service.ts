@@ -4,13 +4,16 @@ import { Career, City, CreatePass, getPassStatusLabel, getPaymentStatusLabel, Pa
 import { PassRepository } from "../db/repositories/pass-repository";
 import { FilteredPaginationRequest } from "@/domain/FilteredPagination";
 import { PaginationResponse } from "mimmers-core-nodejs";
-import { GoogleWallet_FrontFieldPaths, GoogleWalletCredentials, GoogleWalletManager, LinkModuleData } from "pases-universitarios/wallet";
+import { AppleWalletManager, GoogleWallet_FrontFieldPaths, GoogleWalletCredentials, GoogleWalletManager, LinkModuleData } from "pases-universitarios/wallet";
 import { ConfigRepository } from "../db/repositories/config-repository";
 import { UniversityRepository } from "../db/repositories/university-repository";
 import { CareerRepository } from "../db/repositories/career-repository";
 import { CityRepository } from "../db/repositories/city-repository";
 import { InstallData_Google } from "@/domain/InstallData";
 import { AppleManagerService } from "./apple/apple-manager-service";
+import { GoogleManagerService } from "./google/google-manager-service";
+import apn from '@parse/node-apn';
+import { AppleDeviceRepository } from "../db/repositories/apple-device-repository";
 
 const errorHandler = new ErrorHandler_Service(ServiceErrorOrigin.PASSES);
 export class PassService {
@@ -37,6 +40,62 @@ export class PassService {
     public static async getPaginatedPasses(universityId: string, pRequest: FilteredPaginationRequest): Promise<PaginationResponse<Pass>> {
         const passes = await PassRepository.getPaginatedPasses(universityId, pRequest);
         return passes;
+    }
+
+    public static async sendOpenNotification(universityId: string, filters: FilteredPaginationRequest, header: string, body: string): Promise<void> {
+        // Get all passes that match the filters
+        const passes = await PassRepository.getPassesByFilters(universityId, filters);
+        
+        if (passes.length === 0) {
+            return; // No passes to notify
+        }
+
+        // Extract ids from passes
+        const ids = passes.map(pass => ({ uniqueIdentifier: pass.uniqueIdentifier, careerId: pass.careerId }));
+
+        // Update all passes with the notification data
+        await PassRepository.update_InformationField(universityId, ids, body);
+        
+        const universityData = await UniversityRepository.getUniversityById(universityId);
+
+        const appleDevices = await AppleDeviceRepository.getDevicesByIds(ids.map((id) => ({ universityId, uniqueIdentifier: id.uniqueIdentifier, careerId: id.careerId })));
+        // send notifications to all passes
+        // TODO: Change to use parallel processing
+
+        const credentials: GoogleWalletCredentials = {
+            project_id: process.env.GOOGLE_PROJECT_ID!,
+            private_key: process.env.GOOGLE_PRIVATE_KEY!,
+            client_email: process.env.GOOGLE_CLIENT_EMAIL!,
+            client_id: process.env.GOOGLE_CLIENT_ID!,
+            auth_uri: process.env.GOOGLE_AUTH_URI!,
+            token_uri: process.env.GOOGLE_TOKEN_URI!,
+            auth_provider_x509_cert_url: process.env.GOOGLE_AUTH_PROVIDER_X509_CERT_URL!,
+            client_x509_cert_url: process.env.GOOGLE_CLIENT_X509_CERT_URL!,
+        };
+        const googleWalletManager = new GoogleWalletManager(process.env.GOOGLE_ISSUER_ID!, credentials);
+        const apnProvider = new apn.Provider({
+            token: {
+                key: process.env.APPLE_APN_KEY!,
+                keyId: process.env.APPLE_APN_KEY_ID!,
+                teamId: process.env.APPLE_TEAM_ID!,
+            },
+            production: true
+        });
+
+
+        for(const pass of passes) {
+            if(pass.googleWalletObjectID !== null) {
+                const googleProps = await GoogleManagerService.getGoogleWalletIssuePropsFromPass(universityData, pass.careerName, pass.cityName, pass);
+                await googleWalletManager.updatePass(pass.googleWalletObjectID, googleProps);
+                await googleWalletManager.sendPassNotification(pass.googleWalletObjectID, header, body);               
+            }
+        }
+
+        await AppleWalletManager.sendSilentPushNotification(apnProvider, appleDevices.map((device) => ({
+            passSerialNumber: device.serialNumber,
+            pushToken: device.pushToken,
+            passTypeIdentifier: device.passTypeIdentifier,
+        })));
     }
 
     // Google Wallet methods
@@ -87,92 +146,9 @@ export class PassService {
     }
 
     private static async getInstallLink_Google(googleWalletManager: GoogleWalletManager, universityData: University, data: Pass, careerData: Career, cityData: City, objectId: string, classId: string): Promise<string> {
-        const linksModuleData: LinkModuleData[] = [];
-        if(data.onlinePaymentLink !== null) {
-            linksModuleData.push({
-                id: "onlinePaymentLink",
-                uri: data.onlinePaymentLink,
-                description: "Pagar Pase",
-            });
-        }
-        if(data.academicCalendarLink !== null) {
-            linksModuleData.push({
-                id: "academicCalendarLink",
-                uri: data.academicCalendarLink,
-                description: "Calendario Académico",
-            });
-        }
+        const googleProps = await GoogleManagerService.getGoogleWalletIssuePropsFromPass(universityData, careerData.name, cityData.name, data);
 
-        const installLink = await googleWalletManager.createPass(objectId, classId, {
-            cardTitle: universityData.name,
-            header: data.name,
-            subheader: "Nombre",
-            heroUri: "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/google-io-hero-demo-only.png",
-            hexBackgroundColor: "#000000",
-            logoUri: "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/pass_google_logo.jpg",
-            barcode: {
-                value: data.paymentReference,
-                alternativeText: data.paymentReference,
-            },
-            textModulesData: [
-                {
-                    id: GoogleWallet_FrontFieldPaths.PRIMARY_LEFT,
-                    header: "Universidad",
-                    body: universityData.name,
-                },
-                {
-                    id: GoogleWallet_FrontFieldPaths.PRIMARY_RIGHT,
-                    header: "Estado",
-                    body: getPassStatusLabel(data.status),
-                },
-                {
-                    id: GoogleWallet_FrontFieldPaths.SECONDARY_LEFT,
-                    header: "Año de Ingreso",
-                    body: data.enrollmentYear.toString(),
-                },
-                {
-                    id: GoogleWallet_FrontFieldPaths.SECONDARY_RIGHT,
-                    header: "Estado de Pago",
-                    body: getPaymentStatusLabel(data.paymentStatus),
-                },
-                {
-                    id: "totalToPay",
-                    header: "Total a Pagar",
-                    body: data.totalToPay.toString(),
-                },
-                {
-                    id: "endDueDate",
-                    header: "Fecha de Vencimiento",
-                    body: data.endDueDate.toLocaleDateString(),
-                },
-                {
-                    id: "cashback",
-                    header: "Cashback",
-                    body: data.cashback.toString(),
-                },
-                {
-                    id: "career",
-                    header: "Carrera",
-                    body: careerData.name,
-                },
-                {
-                    id: "semester",
-                    header: "Semestre",
-                    body: data.semester.toString(),
-                },
-                {
-                    id: "city",
-                    header: "Ciudad",
-                    body: cityData.name,
-                },
-                {
-                    id: "enrollmentYear",
-                    header: "Año de Ingreso",
-                    body: data.enrollmentYear.toString(),
-                }
-            ],
-            linksModuleData: linksModuleData
-        }, process.env.NEXT_PUBLIC_ORIGIN!);
+        const installLink = await googleWalletManager.createPass(objectId, classId, googleProps, process.env.NEXT_PUBLIC_ORIGIN!);
 
         return installLink;
     }
