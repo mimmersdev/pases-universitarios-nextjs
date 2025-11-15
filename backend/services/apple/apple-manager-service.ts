@@ -58,6 +58,11 @@ export class AppleManagerService {
                 label: "Total a pagar",
             },
             {
+                key: "cashback",
+                value: pass.cashback.toString(),
+                label: "Cashback",
+            },
+            {
                 key: "informationField",
                 value: pass.informationField,
                 label: "Información Extra",

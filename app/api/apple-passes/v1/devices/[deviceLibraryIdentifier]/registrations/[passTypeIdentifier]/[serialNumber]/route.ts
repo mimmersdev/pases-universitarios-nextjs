@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAppleAuthenticationToken, AppleWalletManager } from "pases-universitarios/wallet";
 
 const verifyToken = (request: NextRequest, serialNumber: string): boolean => {
+    console.log(request.headers);
     const authHeader = request.headers.get('authorization');    
     if (!authHeader || !authHeader.startsWith('ApplePass ')) {
         return false;
