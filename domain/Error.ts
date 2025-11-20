@@ -53,12 +53,17 @@ export class RepositoryError extends Error implements UserReadableError {
 
 // Service Errors
 export enum ServiceErrorType {
-    NOT_ACTIVE = '0'
+    NOT_ACTIVE = '0',
+    INVALID_SIZE = '1',
+    CANT_RESIZE_IMAGE = '2',
+    NO_SQUARE_IMAGE = '3',
+    INVALID_FORMAT = '4'
 }
 
 export enum ServiceErrorOrigin {
     CAREERS = '001',
-    PASSES = '002'
+    PASSES = '002',
+    IMAGE_PROCESSING = '003'
 }
 
 export class ServiceError extends Error implements UserReadableError {

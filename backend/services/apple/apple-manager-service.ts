@@ -56,9 +56,9 @@ export class AppleManagerService {
                 label: "Total a pagar",
             },
             {
-                key: "cashback",
-                value: pass.cashback.toString(),
-                label: "Cashback",
+                key: "entryDate",
+                value: pass.enrollmentYear.toString(),
+                label: "Fecha de ingreso",
             },
             {
                 key: "informationField",
@@ -104,7 +104,7 @@ export class AppleManagerService {
             primaryField: {
                 value: pass.name,
                 key: "name",
-                label: universityData.name,
+                label: "RutaPro",
             },
             secondaryFields: [
                 {
@@ -122,9 +122,9 @@ export class AppleManagerService {
             ],
             auxiliaryFields: [
                 {
-                    key: "entryDate",
-                    value: pass.enrollmentYear.toString(),
-                    label: "Fecha de ingreso",
+                    key: "cashback",
+                    value: pass.cashback.toString(),
+                    label: "Cashback",
                     textAlignment: "PKTextAlignmentLeft"
                 },
                 {
@@ -141,9 +141,9 @@ export class AppleManagerService {
             logo: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'icon_ruta.png'))),
             logoX2: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'icon_ruta2.png'))),
             logoX3: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'icon_ruta3.png'))),
-            icon: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'icon_ruta.png'))),
-            iconX2: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'icon_ruta2.png'))),
-            iconX3: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'icon_ruta3.png'))),
+            icon: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'RutaProIcon.png'))),
+            iconX2: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'RutaProIcon2.png'))),
+            iconX3: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'RutaProIcon3.png'))),
             thumbnail: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'thumbnail.png'))),
             thumbnailX2: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'thumbnail.png'))),
             thumbnailX3: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'thumbnail.png'))),
