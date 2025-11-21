@@ -1,7 +1,7 @@
 import { RepositoryErrorOrigin, RepositoryErrorType } from "@/domain/Error";
 import { ErrorHandler_Repository } from "./ErrorHandler";
 import { appleDevices, passes, passUpdates } from "../schema";
-import { CreatePass, CreatePassBackend, InstallationStatus, ListComparation, Pass, PassStatus, PaymentStatus, SimplePass, SimplePass_Extra, UpdatePassDue } from "pases-universitarios";
+import { CreatePassBackend, InstallationStatus, ListComparation, Pass, PassStatus, PaymentStatus, SimplePass, SimplePass_Extra, UpdatePassDue } from "pases-universitarios";
 import { db } from "../config";
 import { PaginationResponse, processChunksInParallel, processChunksInParallelWithSum, processPaginatedWithProgress } from "mimmers-core-nodejs";
 import { DB_CONFIGURATION } from "@/config/database";
