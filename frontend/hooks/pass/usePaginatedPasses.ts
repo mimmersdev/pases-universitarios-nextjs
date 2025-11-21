@@ -6,6 +6,11 @@ import { Pass } from "pases-universitarios";
 
 const fetchPaginatedPasses = async (universityId: string, pRequest: FilteredPaginationRequest): Promise<PaginationResponse<Pass>> => {
     const response = await apiClient.post(`/university/${universityId}/pass/paginated`, pRequest);
+    apiClient.get('', {
+        params: {
+            
+        }
+    })
     return response.data;
 }
 
@@ -16,4 +21,3 @@ export const usePaginatedPasses = (universityId: string, pRequest: FilteredPagin
         placeholderData: (previousData) => previousData, // Keep previous data while fetching new data
     });
 }
-

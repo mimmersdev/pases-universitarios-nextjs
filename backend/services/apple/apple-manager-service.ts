@@ -37,8 +37,6 @@ export class AppleManagerService {
         }
 
         const universityData = await UniversityRepository.getUniversityById(pass.universityId);
-        const careerData = await CareerRepository.getCareerByCode(pass.universityId, pass.careerId);
-        const cityData = await CityRepository.getCityByCode(pass.universityId, pass.cityId);
 
         const credentials: AppleWalletCredentials = {
             teamIdentifier: process.env.APPLE_TEAM_ID!,
@@ -54,6 +52,11 @@ export class AppleManagerService {
                 key: "totalToPay",
                 value: pass.totalToPay.toString(),
                 label: "Total a pagar",
+            },
+            {
+                key: "endDueDate",
+                value: pass.endDueDate.toLocaleDateString(),
+                label: "Fecha de vencimiento",
             },
             {
                 key: "entryDate",

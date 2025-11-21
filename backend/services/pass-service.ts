@@ -1,9 +1,9 @@
 import { ServiceErrorOrigin, ServiceErrorType } from "@/domain/Error";
 import { ErrorHandler_Service } from "./ErrorHandler";
-import { Career, City, CreatePass, getPassStatusLabel, getPaymentStatusLabel, Pass, SimplePass, University } from "pases-universitarios";
+import { Career, City, CreatePass, CreatePassBackend, getPassStatusLabel, getPaymentStatusLabel, Pass, SimplePass, University } from "pases-universitarios";
 import { PassRepository } from "../db/repositories/pass-repository";
 import { FilteredPaginationRequest } from "@/domain/FilteredPagination";
-import { PaginationResponse } from "mimmers-core-nodejs";
+import { PaginationResponse, processChunksInParallelWithSum } from "mimmers-core-nodejs";
 import { AppleWalletManager, GoogleWallet_FrontFieldPaths, GoogleWalletCredentials, GoogleWalletManager, LinkModuleData } from "pases-universitarios/wallet";
 import { ConfigRepository } from "../db/repositories/config-repository";
 import { UniversityRepository } from "../db/repositories/university-repository";
@@ -14,16 +14,44 @@ import { AppleManagerService } from "./apple/apple-manager-service";
 import { GoogleManagerService } from "./google/google-manager-service";
 import apn from '@parse/node-apn';
 import { AppleDeviceRepository } from "../db/repositories/apple-device-repository";
+import { ImageService } from "./utils/image-service";
+import { DB_CONFIGURATION } from "@/config/database";
 
 const errorHandler = new ErrorHandler_Service(ServiceErrorOrigin.PASSES);
 export class PassService {
     public static async createPass(universityId: string, req: CreatePass): Promise<Pass> {
-        const pass = await PassRepository.createPass(universityId, req);
+        const { originalUrl, reducedBy2Url, reducedBy3Url } = await ImageService.getAndProcessImage(req.photoUrl);
+        const pass = await PassRepository.createPass(universityId, {
+            ...req,
+            photo1Url: reducedBy3Url,
+            photo2Url: reducedBy2Url,
+            photo3Url: originalUrl,
+        });
         return pass;
     }
 
     public static async createMany(universityId: string, req: CreatePass[]): Promise<number> {
-        const count = await PassRepository.createMany(universityId, req);
+        const count = await processChunksInParallelWithSum(
+            req,
+            DB_CONFIGURATION.CHUNK_SIZES.COMPLEX_INSERT,
+            async (chunk) => {
+                const processedImages = await Promise.all(
+                    chunk.map(async (i) => {
+                        const imageUrls = await ImageService.getAndProcessImage(i.photoUrl);
+                        const result: CreatePassBackend = {
+                            ...i,
+                            photo1Url: imageUrls.reducedBy3Url,
+                            photo2Url: imageUrls.reducedBy2Url,
+                            photo3Url: imageUrls.originalUrl,
+                        };
+                        return result;
+                    })
+                );
+
+                return await PassRepository.createMany(universityId, processedImages);
+            },
+            DB_CONFIGURATION.CONNECTION.MAX_CONCURRENT_CHUNKS
+        );
         return count;
     }
 

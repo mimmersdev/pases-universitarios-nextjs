@@ -22,10 +22,10 @@ export class GoogleManagerService {
         return {
             cardTitle: universityData.name,
             header: pass.name,
-            subheader: "Nombre",
-            heroUri: "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/google-io-hero-demo-only.png",
-            hexBackgroundColor: "#000000",
-            logoUri: "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/pass_google_logo.jpg",
+            subheader: "RutaPro",
+            heroUri: "https://avex-rutapro.s3.us-east-1.amazonaws.com/emel_hero.png",
+            hexBackgroundColor: "#0d1e35",
+            logoUri: "https://avex-rutapro.s3.us-east-1.amazonaws.com/RutaProIcon3.png",
             barcode: {
                 value: pass.paymentReference,
                 alternativeText: pass.paymentReference,
@@ -33,7 +33,7 @@ export class GoogleManagerService {
             textModulesData: [
                 {
                     id: GoogleWallet_FrontFieldPaths.PRIMARY_LEFT,
-                    header: "Universidad",
+                    header: "Institución",
                     body: universityData.name,
                 },
                 {
@@ -43,8 +43,8 @@ export class GoogleManagerService {
                 },
                 {
                     id: GoogleWallet_FrontFieldPaths.SECONDARY_LEFT,
-                    header: "Año de Ingreso",
-                    body: pass.enrollmentYear.toString(),
+                    header: "Cashback",
+                    body: pass.cashback.toString(),
                 },
                 {
                     id: GoogleWallet_FrontFieldPaths.SECONDARY_RIGHT,
@@ -62,9 +62,9 @@ export class GoogleManagerService {
                     body: pass.endDueDate.toLocaleDateString(),
                 },
                 {
-                    id: "cashback",
-                    header: "Cashback",
-                    body: pass.cashback.toString(),
+                    id: "enrollmentYear",
+                    header: "Año de Ingreso",
+                    body: pass.enrollmentYear.toString(),
                 },
                 {
                     id: "career",
@@ -75,11 +75,6 @@ export class GoogleManagerService {
                     id: "semester",
                     header: "Semestre",
                     body: pass.semester.toString(),
-                },
-                {
-                    id: "city",
-                    header: "Ciudad",
-                    body: cityName,
                 },
                 {
                     id: "enrollmentYear",

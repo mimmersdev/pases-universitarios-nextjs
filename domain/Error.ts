@@ -57,13 +57,15 @@ export enum ServiceErrorType {
     INVALID_SIZE = '1',
     CANT_RESIZE_IMAGE = '2',
     NO_SQUARE_IMAGE = '3',
-    INVALID_FORMAT = '4'
+    INVALID_FORMAT = '4',
+    IMAGE_NOT_FOUND = '5'
 }
 
 export enum ServiceErrorOrigin {
     CAREERS = '001',
     PASSES = '002',
-    IMAGE_PROCESSING = '003'
+    IMAGE_PROCESSING = '003',
+    IMAGE_SERVICE = '004',
 }
 
 export class ServiceError extends Error implements UserReadableError {
@@ -84,5 +86,35 @@ export class ServiceError extends Error implements UserReadableError {
 
     getError(): string {
         return `${this.origin} - ${this.type}`;
+    }
+}
+
+export enum S3ErrorType {
+    UPLOAD_FAILED = '0',
+    DOWNLOAD_FAILED = '1',
+    DELETE_FAILED = '2',
+    LIST_FAILED = '3',
+    GET_FAILED = '4',
+    PUT_FAILED = '5',
+    POST_FAILED = '6',
+}
+
+export class S3Error extends Error implements UserReadableError {
+    constructor(
+        public readonly type: S3ErrorType,
+        public readonly cause?: unknown
+    ) {
+        super(`S3 error: ${type}`);
+        // Log code
+        console.error(`S3 error: ${this.getError()}`);
+        // Log original error
+        if (this.cause) {
+            console.error('Details:');
+            console.error(this.cause);
+        }
+    }
+
+    getError(): string {
+        return `S3 - ${this.type}`;
     }
 }

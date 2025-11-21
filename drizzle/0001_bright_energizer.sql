@@ -1,1 +1,0 @@
-ALTER TABLE "passes" ADD COLUMN "information_field" text DEFAULT '' NOT NULL;

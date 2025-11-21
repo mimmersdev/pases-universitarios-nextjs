@@ -78,6 +78,9 @@ export const passes = pgTable('passes', {
     notificationCount: integer('notification_count').notNull().default(0),
     lastNotificationDate: timestamp('last_notification_date', { withTimezone: true }),
     informationField: text('information_field').notNull().default(''),
+    photo1Url: text('photo1_url').notNull(),
+    photo2Url: text('photo2_url').notNull(),
+    photo3Url: text('photo3_url').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 }, (t) => [

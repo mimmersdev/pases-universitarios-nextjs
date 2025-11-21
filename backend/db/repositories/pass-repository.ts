@@ -1,7 +1,7 @@
 import { RepositoryErrorOrigin, RepositoryErrorType } from "@/domain/Error";
 import { ErrorHandler_Repository } from "./ErrorHandler";
 import { appleDevices, passes, passUpdates } from "../schema";
-import { CreatePass, InstallationStatus, ListComparation, Pass, PassStatus, PaymentStatus, SimplePass, SimplePass_Extra, UpdatePassDue } from "pases-universitarios";
+import { CreatePass, CreatePassBackend, InstallationStatus, ListComparation, Pass, PassStatus, PaymentStatus, SimplePass, SimplePass_Extra, UpdatePassDue } from "pases-universitarios";
 import { db } from "../config";
 import { PaginationResponse, processChunksInParallel, processChunksInParallelWithSum, processPaginatedWithProgress } from "mimmers-core-nodejs";
 import { DB_CONFIGURATION } from "@/config/database";
@@ -29,14 +29,17 @@ type SimplePassSelectType = {
 
 export class PassRepository {
 
-    public static async createPass(universityId: string, req: CreatePass): Promise<Pass> {
+    public static async createPass(universityId: string, req: CreatePassBackend,): Promise<Pass> {
         try {
             const [pass] = await db.insert(passes).values({
                 ...req,
                 universityId,
                 passStatus: PassStatus.Active,
                 totalToPay: String(req.totalToPay),
-                cashback: String(req.cashback)
+                cashback: String(req.cashback),
+                photo1Url: req.photo1Url,
+                photo2Url: req.photo2Url,
+                photo3Url: req.photo3Url,
             }).returning();
             return this.mapToDomain(pass);
         } catch (error) {
@@ -44,23 +47,19 @@ export class PassRepository {
         }
     }
 
-    public static async createMany(universityId: string, req: CreatePass[]): Promise<number> {
+    public static async createMany(universityId: string, req: CreatePassBackend[]): Promise<number> {
         try {
-            return await processChunksInParallelWithSum(
-                req,
-                DB_CONFIGURATION.CHUNK_SIZES.COMPLEX_INSERT,
-                async (chunk) => {
-                    const result = await db.insert(passes).values(chunk.map(pass => ({
-                        ...pass,
-                        universityId,
-                        passStatus: PassStatus.Active,
-                        totalToPay: String(pass.totalToPay),
-                        cashback: String(pass.cashback)
-                    })))
-                    return result.rowCount || 0;
-                },
-                DB_CONFIGURATION.CONNECTION.MAX_CONCURRENT_CHUNKS
-            )
+            const result = await db.insert(passes).values(req.map(pass => ({
+                ...pass,
+                universityId,
+                passStatus: PassStatus.Active,
+                totalToPay: String(pass.totalToPay),
+                cashback: String(pass.cashback),
+                photo1Url: pass.photo1Url,
+                photo2Url: pass.photo2Url,
+                photo3Url: pass.photo3Url,
+            })))
+            return result.rowCount || 0;
         } catch (error) {
             throw errorHandler.handleError(RepositoryErrorType.CREATE, error);
         }
@@ -827,6 +826,9 @@ export class PassRepository {
             notificationCount: pass.notificationCount,
             lastNotificationDate: pass.lastNotificationDate,
             informationField: pass.informationField,
+            photo1Url: pass.photo1Url,
+            photo2Url: pass.photo2Url,
+            photo3Url: pass.photo3Url,
             createdAt: pass.createdAt,
             updatedAt: pass.updatedAt,
         }
