@@ -156,12 +156,12 @@ export class AppleManagerService {
         const image3Buffer = Buffer.from(image3Response.data);
 
         const images: AppleWalletImages = {
-            logo: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'icon_ruta.png'))),
-            logoX2: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'icon_ruta2.png'))),
-            logoX3: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'icon_ruta3.png'))),
-            icon: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'RutaProIcon.png'))),
-            iconX2: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'RutaProIcon2.png'))),
-            iconX3: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'RutaProIcon3.png'))),
+            logo: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'images', 'logo1.png'))),
+            logoX2: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'images', 'logo2.png'))),
+            logoX3: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'images', 'logo3.png'))),
+            icon: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'images', 'icon1.png'))),
+            iconX2: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'images', 'icon2.png'))),
+            iconX3: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'images', 'icon3.png'))),
             thumbnail: image1Buffer,
             thumbnailX2: image2Buffer,
             thumbnailX3: image3Buffer,
