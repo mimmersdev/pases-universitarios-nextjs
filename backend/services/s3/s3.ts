@@ -93,6 +93,9 @@ const getRandomFileName = (extension: string) => {
 }
 
 export class S3Service {
+    public static getImageUrl(filePath: string): string {
+        return `https://avex-rutapro.s3.us-east-1.amazonaws.com/${this.getEnvironmentFolder()}/${filePath}`;
+    }
     /**
      * Uploads a buffer to S3 and returns the file path
      * @param buffer - The buffer to upload

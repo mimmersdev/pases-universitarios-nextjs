@@ -1,5 +1,5 @@
 {
-  "id": "46a22540-d141-49a5-87f9-131eba96193e",
+  "id": "62380fb7-2cbf-4c43-9135-37b334a43c1b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -350,73 +350,6 @@
       "compositePrimaryKeys": {
         "careers_code_university_id_pk": {
           "name": "careers_code_university_id_pk",
-          "columns": [
-            "code",
-            "university_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.cities": {
-      "name": "cities",
-      "schema": "",
-      "columns": {
-        "code": {
-          "name": "code",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "university_id": {
-          "name": "university_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "cities_university_id_universities_id_fk": {
-          "name": "cities_university_id_universities_id_fk",
-          "tableFrom": "cities",
-          "tableTo": "universities",
-          "columnsFrom": [
-            "university_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "cities_code_university_id_pk": {
-          "name": "cities_code_university_id_pk",
           "columns": [
             "code",
             "university_id"
@@ -921,12 +854,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "city_id": {
-          "name": "city_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "career_id": {
           "name": "career_id",
           "type": "text",
@@ -987,6 +914,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "student_status": {
+          "name": "student_status",
+          "type": "student_status",
+          "primaryKey": false,
+          "notNull": true
+        },
         "online_payment_url": {
           "name": "online_payment_url",
           "type": "text",
@@ -998,18 +931,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
-        },
-        "graduated": {
-          "name": "graduated",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "currently_studying": {
-          "name": "currently_studying",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
         },
         "google_wallet_object_id": {
           "name": "google_wallet_object_id",
@@ -1126,21 +1047,6 @@
           "columns": [
             {
               "expression": "pass_status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_passes_city_id": {
-          "name": "idx_passes_city_id",
-          "columns": [
-            {
-              "expression": "city_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1286,21 +1192,6 @@
           "method": "btree",
           "with": {}
         },
-        "idx_passes_currently_studying": {
-          "name": "idx_passes_currently_studying",
-          "columns": [
-            {
-              "expression": "currently_studying",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "idx_passes_google_wallet_object_id": {
           "name": "idx_passes_google_wallet_object_id",
           "columns": [
@@ -1342,21 +1233,6 @@
           ],
           "columnsTo": [
             "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "passes_city_id_university_id_cities_code_university_id_fk": {
-          "name": "passes_city_id_university_id_cities_code_university_id_fk",
-          "tableFrom": "passes",
-          "tableTo": "cities",
-          "columnsFrom": [
-            "city_id",
-            "university_id"
-          ],
-          "columnsTo": [
-            "code",
-            "university_id"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -1539,6 +1415,15 @@
         "Due",
         "Overdue",
         "Paid"
+      ]
+    },
+    "public.student_status": {
+      "name": "student_status",
+      "schema": "public",
+      "values": [
+        "Active",
+        "Inactive",
+        "Graduated"
       ]
     },
     "public.tag_type": {

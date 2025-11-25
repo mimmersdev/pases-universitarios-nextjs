@@ -1,8 +1,9 @@
-import { Career, City, getPassStatusLabel, getPaymentStatusLabel, Pass, University } from "pases-universitarios";
+import { getPassStatusLabel, getPaymentStatusLabel, Pass, University } from "pases-universitarios";
 import { GoogleWallet_FrontFieldPaths, GoogleWalletIssueProps, LinkModuleData } from "pases-universitarios/wallet";
+import { S3Service } from "../s3/s3";
 
 export class GoogleManagerService {
-    public static async getGoogleWalletIssuePropsFromPass(universityData: University, careerName: string, cityName: string, pass: Pass): Promise<GoogleWalletIssueProps> {
+    public static async getGoogleWalletIssuePropsFromPass(universityData: University, careerName: string, pass: Pass): Promise<GoogleWalletIssueProps> {
         const linksModuleData: LinkModuleData[] = [];
         if (pass.onlinePaymentLink !== null) {
             linksModuleData.push({
@@ -19,11 +20,13 @@ export class GoogleManagerService {
             });
         }
 
+        console.log(S3Service.getImageUrl(pass.photo3Url));
+
         return {
-            cardTitle: universityData.name,
+            cardTitle: careerName,
             header: pass.name,
             subheader: "RutaPro",
-            heroUri: "https://avex-rutapro.s3.us-east-1.amazonaws.com/emel_hero.png",
+            heroUri: S3Service.getImageUrl(pass.photo3Url),
             hexBackgroundColor: "#0d1e35",
             logoUri: "https://avex-rutapro.s3.us-east-1.amazonaws.com/RutaProIcon3.png",
             barcode: {

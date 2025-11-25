@@ -9,7 +9,6 @@ import { Button, Input, Spinner } from "@heroui/react";
 import { useForm } from "@tanstack/react-form";
 import { useParams, useRouter } from "next/navigation";
 import { UpdateUniversity, updateUniversitySchema } from "pases-universitarios";
-import CitySection from "./components/city/CitySection";
 import CareerSection from "./components/career/CareerSection";
 import { ArrowLeftIcon, DocumentDuplicateIcon } from "@heroicons/react/24/solid";
 
@@ -87,7 +86,6 @@ export default function UniversityPage() {
                 </form>
             </Container>
         </Section>
-        <CitySection universityId={universityId as string} />
         <CareerSection universityId={universityId as string} />
     </>);
 }

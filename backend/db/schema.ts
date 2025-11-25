@@ -1,8 +1,9 @@
 import { relations, sql } from "drizzle-orm";
 import { boolean, decimal, foreignKey, index, integer, pgEnum, pgTable, primaryKey, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
-import { InstallationStatus, PassStatus, PaymentStatus, TagType } from "pases-universitarios";
+import { InstallationStatus, PassStatus, PaymentStatus, StudentStatus, TagType } from "pases-universitarios";
 
 export const paymentStatusEnum = pgEnum('payment_status', PaymentStatus);
+export const studentStatusEnum = pgEnum('student_status', StudentStatus);
 export const passStatusEnum = pgEnum('pass_status', PassStatus);
 export const installationStatusEnum = pgEnum('installation_status', InstallationStatus);
 export const tagTypeEnum = pgEnum('tag_type', TagType);
@@ -41,22 +42,11 @@ export const careers = pgTable('careers', {
     primaryKey({ columns: [t.code, t.universityId] }),
 ]);
 
-export const cities = pgTable('cities', {
-    code: text('code').notNull(),
-    universityId: uuid('university_id').references(() => universities.id).notNull(),
-    name: text('name').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
-}, (t) => [
-    primaryKey({ columns: [t.code, t.universityId] }),
-]);
-
 export const passes = pgTable('passes', {
     uniqueIdentifier: text('unique_identifier').notNull(),
     name: text('name').notNull(),
     email: text('email').notNull(),
     universityId: uuid('university_id').references(() => universities.id).notNull(),
-    cityId: text('city_id').notNull(),
     careerId: text('career_id').notNull(),
     semester: integer('semester').notNull(),
     enrollmentYear: integer('enrollment_year').notNull(),
@@ -67,10 +57,9 @@ export const passes = pgTable('passes', {
     startDueDate: timestamp('start_due_date', { withTimezone: true }).notNull(),
     endDueDate: timestamp('end_due_date', { withTimezone: true }).notNull(),
     cashback: decimal('cashback').notNull(),
+    studentStatus: studentStatusEnum('student_status').notNull(),
     onlinePaymentUrl: text('online_payment_url'),
     academicCalendarUrl: text('academic_calendar_url'),
-    graduated: boolean('graduated').notNull(),
-    currentlyStudying: boolean('currently_studying').notNull(),
     googleWalletObjectId: text('google_wallet_object_id'),
     appleWalletSerialNumber: text('apple_wallet_serial_number'),
     googleInstallationStatus: installationStatusEnum('google_installation_status').notNull().default(InstallationStatus.Pending),
@@ -87,10 +76,6 @@ export const passes = pgTable('passes', {
     primaryKey({ columns: [t.uniqueIdentifier, t.careerId, t.universityId] }),
     unique('uq_passes').on(t.uniqueIdentifier, t.careerId, t.universityId),
     foreignKey({
-        columns: [t.cityId, t.universityId],
-        foreignColumns: [cities.code, cities.universityId],
-    }),
-    foreignKey({
         columns: [t.careerId, t.universityId],
         foreignColumns: [careers.code, careers.universityId],
     }),
@@ -100,8 +85,6 @@ export const passes = pgTable('passes', {
     index('idx_passes_payment_status').on(t.paymentStatus),
     index('idx_passes_pass_status').on(t.passStatus),
     
-    // Filtering by city
-    index('idx_passes_city_id').on(t.cityId),
     // Foreign key for joins and filtering by career
     index('idx_passes_career_id').on(t.careerId),
     
@@ -117,8 +100,6 @@ export const passes = pgTable('passes', {
     // Temporal sorting/filtering
     index('idx_passes_created_at').on(t.createdAt),
     
-    // Boolean filters (if frequently used alone)
-    index('idx_passes_currently_studying').on(t.currentlyStudying),
     index('idx_passes_google_wallet_object_id').on(t.googleWalletObjectId),
     index('idx_passes_apple_wallet_serial_number').on(t.appleWalletSerialNumber),
 ]);
@@ -239,7 +220,6 @@ export const listTags = pgTable('list_tags', {
 
 export const universitiesRelations = relations(universities, ({ many }) => ({
     careers: many(careers),
-    cities: many(cities),
     passes: many(passes),
     tags: many(tags),
 }));
@@ -247,14 +227,6 @@ export const universitiesRelations = relations(universities, ({ many }) => ({
 export const careersRelations = relations(careers, ({ one, many }) => ({
     university: one(universities, {
         fields: [careers.universityId],
-        references: [universities.id],
-    }),
-    passes: many(passes),
-}));
-
-export const citiesRelations = relations(cities, ({ one, many }) => ({
-    university: one(universities, {
-        fields: [cities.universityId],
         references: [universities.id],
     }),
     passes: many(passes),
@@ -268,10 +240,6 @@ export const passesRelations = relations(passes, ({ one, many }) => ({
     career: one(careers, {
         fields: [passes.careerId, passes.universityId],
         references: [careers.code, careers.universityId],
-    }),
-    city: one(cities, {
-        fields: [passes.cityId, passes.universityId],
-        references: [cities.code, cities.universityId],
     }),
     appleDevices: many(appleDevices),
     passUpdates: many(passUpdates),

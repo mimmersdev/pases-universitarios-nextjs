@@ -155,14 +155,6 @@ export class PassRepository {
                     conditions.push(inArray(passes.paymentStatus, filters.paymentStatus));
                 }
 
-                // Boolean filters
-                if (filters.graduated !== undefined) {
-                    conditions.push(eq(passes.graduated, filters.graduated));
-                }
-                if (filters.currentlyStudying !== undefined) {
-                    conditions.push(eq(passes.currentlyStudying, filters.currentlyStudying));
-                }
-
                 // Complex filters
                 if (filters.careerId && filters.careerId.values.length > 0) {
                     if (filters.careerId.comparation === ListComparation.Include) {
@@ -458,7 +450,7 @@ export class PassRepository {
         }
     }
 
-    public static async getPassesByFilters(universityId: string, pRequest: FilteredPaginationRequest): Promise<(Pass & { careerName: string, cityName: string })[]> {
+    public static async getPassesByFilters(universityId: string, pRequest: FilteredPaginationRequest): Promise<(Pass & { careerName: string })[]> {
         try {
             const conditions: SQL[] = [
                 eq(passes.universityId, universityId),
@@ -470,14 +462,6 @@ export class PassRepository {
                 // IN filters
                 if (filters.paymentStatus && filters.paymentStatus.length > 0) {
                     conditions.push(inArray(passes.paymentStatus, filters.paymentStatus));
-                }
-
-                // Boolean filters
-                if (filters.graduated !== undefined) {
-                    conditions.push(eq(passes.graduated, filters.graduated));
-                }
-                if (filters.currentlyStudying !== undefined) {
-                    conditions.push(eq(passes.currentlyStudying, filters.currentlyStudying));
                 }
 
                 // Complex filters
@@ -531,11 +515,6 @@ export class PassRepository {
                         columns: {
                             name: true
                         }
-                    },
-                    city: {
-                        columns: {
-                            name: true
-                        }
                     }
                 }
             });
@@ -543,14 +522,13 @@ export class PassRepository {
             return passesResult.map((pass) => ({
                 ...this.mapToDomain(pass),
                 careerName: pass.career.name,
-                cityName: pass.city.name
             }));
         } catch (error) {
             throw errorHandler.handleError(RepositoryErrorType.GET, error);
         }
     }
 
-    public static async getPassesByIds(universityId: string, ids: { uniqueIdentifier: string, careerId: string }[]): Promise<(Pass & { careerName: string, cityName: string })[]> {
+    public static async getPassesByIds(universityId: string, ids: { uniqueIdentifier: string, careerId: string }[]): Promise<(Pass & { careerName: string })[]> {
         try {
             if (ids.length === 0) {
                 return [];
@@ -571,18 +549,12 @@ export class PassRepository {
                                     name: true
                                 }
                             },
-                            city: {
-                                columns: {
-                                    name: true
-                                }
-                            }
                         }
                     });
 
                     return passesResult.map((pass) => ({
                         ...this.mapToDomain(pass),
                         careerName: pass.career.name,
-                        cityName: pass.city.name
                     }));
                 },
                 DB_CONFIGURATION.CONNECTION.MAX_CONCURRENT_CHUNKS
@@ -804,7 +776,6 @@ export class PassRepository {
             name: pass.name,
             email: pass.email,
             universityId: pass.universityId,
-            cityId: pass.cityId,
             careerId: pass.careerId,
             semester: pass.semester,
             enrollmentYear: pass.enrollmentYear,
@@ -816,9 +787,8 @@ export class PassRepository {
             endDueDate: pass.endDueDate,
             cashback: Number(pass.cashback),
             onlinePaymentLink: pass.onlinePaymentUrl,
+            studentStatus: pass.studentStatus,
             academicCalendarLink: pass.academicCalendarUrl,
-            graduated: pass.graduated,
-            currentlyStudying: pass.currentlyStudying,
             googleWalletObjectID: pass.googleWalletObjectId,
             appleWalletSerialNumber: pass.appleWalletSerialNumber,
             googleWalletInstallationStatus: pass.googleInstallationStatus,
@@ -852,7 +822,7 @@ export class PassRepository {
         }
     }
 
-    public static mapToDomain_SimplePass_Extra(pass: SimplePassSelectType & { careerName: string, cityName: string }): SimplePass_Extra {
+    public static mapToDomain_SimplePass_Extra(pass: SimplePassSelectType & { careerName: string }): SimplePass_Extra {
         return {
             uniqueIdentifier: pass.uniqueIdentifier,
             careerId: pass.careerId,
@@ -868,7 +838,6 @@ export class PassRepository {
             createdAt: pass.createdAt,
             updatedAt: pass.updatedAt,
             careerName: pass.careerName,
-            cityName: pass.cityName,
         }
     }
 }

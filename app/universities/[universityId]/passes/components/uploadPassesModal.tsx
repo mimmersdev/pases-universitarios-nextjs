@@ -53,11 +53,6 @@ const excelExampleData: ExcelDataItem[] = [
         example: "juan.perez@example.com"
     },
     {
-        ...passExcelFieldDefinitions.find(f => f.title === "cityId")!,
-        description: "Código de la ciudad",
-        example: "123456"
-    },
-    {
         ...passExcelFieldDefinitions.find(f => f.title === "semester")!,
         description: "Semestre en el que se encuentra el portador del pase",
         example: "5"
@@ -98,6 +93,11 @@ const excelExampleData: ExcelDataItem[] = [
         example: "100.50"
     },
     {
+        ...passExcelFieldDefinitions.find(f => f.title === "studentStatus")!,
+        description: "Estado estudiantil del portador del pase",
+        example: "Active"
+    },
+    {
         ...passExcelFieldDefinitions.find(f => f.title === "onlinePaymentLink")!,
         description: "Link de pago en línea del portador del pase",
         example: "https://example.com/pay"
@@ -108,14 +108,9 @@ const excelExampleData: ExcelDataItem[] = [
         example: "https://example.com/calendar"
     },
     {
-        ...passExcelFieldDefinitions.find(f => f.title === "graduated")!,
-        description: "Indica si el portador del pase es graduado",
-        example: "false"
-    },
-    {
-        ...passExcelFieldDefinitions.find(f => f.title === "currentlyStudying")!,
-        description: "Indica si el portador del pase está estudiando actualmente",
-        example: "true"
+        ...passExcelFieldDefinitions.find(f => f.title === "photoUrl")!,
+        description: "URL de la foto del portador del pase",
+        example: "https://example.com/photo.jpg"
     }
 ]
 

@@ -19,10 +19,6 @@ export const passExcelFieldDefinitions: ExcelFieldDefinition[] = [
         type: "string",
     },
     {
-        title: "cityId",
-        type: "string",
-    },
-    {
         title: "semester",
         type: "number",
     },
@@ -56,6 +52,10 @@ export const passExcelFieldDefinitions: ExcelFieldDefinition[] = [
         type: "number",
     },
     {
+        title: "studentStatus",
+        type: "string",
+    },
+    {
         title: "onlinePaymentLink",
         type: "string",
     },
@@ -64,12 +64,8 @@ export const passExcelFieldDefinitions: ExcelFieldDefinition[] = [
         type: "string",
     },
     {
-        title: "graduated",
-        type: "boolean",
-    },
-    {
-        title: "currentlyStudying",
-        type: "boolean",
+        title: "photoUrl",
+        type: "string",
     }
 ];
 

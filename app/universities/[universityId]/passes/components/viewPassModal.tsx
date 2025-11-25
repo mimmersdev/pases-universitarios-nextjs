@@ -4,7 +4,7 @@ import { Modal } from "@/app/components/Modal";
 import { useDownloadApplePass } from "@/frontend/hooks/pass/useDownloadApplePass";
 import { useGoogleInstallData } from "@/frontend/hooks/pass/useGoogleInstallData";
 import { Button, Chip } from "@heroui/react";
-import { Pass } from "pases-universitarios";
+import { getStudentStatusLabel, Pass } from "pases-universitarios";
 
 interface ViewPassModalProps {
     selectedPass: Pass;
@@ -87,12 +87,8 @@ const ViewPassModal = ({ selectedPass, open, onClose }: ViewPassModalProps) => {
                             <p className="text-base">{selectedPass.enrollmentYear}</p>
                         </div>
                         <div>
-                            <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Graduado:</label>
-                            <p className="text-base">{selectedPass.graduated ? 'Sí' : 'No'}</p>
-                        </div>
-                        <div>
-                            <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Estudiando Actualmente:</label>
-                            <p className="text-base">{selectedPass.currentlyStudying ? 'Sí' : 'No'}</p>
+                            <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Estado Estudiantil:</label>
+                            <p className="text-base">{getStudentStatusLabel(selectedPass.studentStatus)}</p>
                         </div>
                     </div>
                 </div>

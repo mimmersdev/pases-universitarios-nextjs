@@ -1,6 +1,6 @@
 import { ServiceErrorOrigin, ServiceErrorType } from "@/domain/Error";
 import { ErrorHandler_Service } from "./ErrorHandler";
-import { Career, City, CreatePass, CreatePassBackend, getPassStatusLabel, getPaymentStatusLabel, Pass, SimplePass, University } from "pases-universitarios";
+import { Career, CreatePass, CreatePassBackend, getPassStatusLabel, getPaymentStatusLabel, Pass, SimplePass, University } from "pases-universitarios";
 import { PassRepository } from "../db/repositories/pass-repository";
 import { FilteredPaginationRequest } from "@/domain/FilteredPagination";
 import { PaginationResponse, processChunksInParallelWithSum } from "mimmers-core-nodejs";
@@ -8,7 +8,6 @@ import { AppleWalletManager, GoogleWallet_FrontFieldPaths, GoogleWalletCredentia
 import { ConfigRepository } from "../db/repositories/config-repository";
 import { UniversityRepository } from "../db/repositories/university-repository";
 import { CareerRepository } from "../db/repositories/career-repository";
-import { CityRepository } from "../db/repositories/city-repository";
 import { InstallData_Google } from "@/domain/InstallData";
 import { AppleManagerService } from "./apple/apple-manager-service";
 import { GoogleManagerService } from "./google/google-manager-service";
@@ -114,7 +113,7 @@ export class PassService {
         for(const pass of passes) {
             if(pass.googleWalletObjectID !== null) {
                 try {
-                    const googleProps = await GoogleManagerService.getGoogleWalletIssuePropsFromPass(universityData, pass.careerName, pass.cityName, pass);
+                    const googleProps = await GoogleManagerService.getGoogleWalletIssuePropsFromPass(universityData, pass.careerName, pass);
                     await googleWalletManager.updatePass(pass.googleWalletObjectID, googleProps);
                     await googleWalletManager.sendPassNotification(pass.googleWalletObjectID, header, body);               
                 } catch (error) {
@@ -141,7 +140,6 @@ export class PassService {
         const data = await PassRepository.getPass(universityId, uniqueIdentifier, careerId);
         const universityData = await UniversityRepository.getUniversityById(universityId);
         const careerData = await CareerRepository.getCareerByCode(universityId, careerId);
-        const cityData = await CityRepository.getCityByCode(universityId, data.cityId);
 
         const credentials: GoogleWalletCredentials = {
             project_id: process.env.GOOGLE_PROJECT_ID!,
@@ -174,17 +172,17 @@ export class PassService {
             // Update pass with object ID
             await PassRepository.update_GoogleWalledIdentication(universityId, uniqueIdentifier, careerId, objectId);
             // Get install link
-            const installLink = await this.getInstallLink_Google(googleWalletManager, universityData, data, careerData, cityData, objectId, classId);
+            const installLink = await this.getInstallLink_Google(googleWalletManager, universityData, data, careerData, objectId, classId);
             return { installLink };
         } else {
             // Get install link
-            const installLink = await this.getInstallLink_Google(googleWalletManager, universityData, data, careerData, cityData, data.googleWalletObjectID, classId);
+            const installLink = await this.getInstallLink_Google(googleWalletManager, universityData, data, careerData, data.googleWalletObjectID, classId);
             return { installLink };
         }
     }
 
-    private static async getInstallLink_Google(googleWalletManager: GoogleWalletManager, universityData: University, data: Pass, careerData: Career, cityData: City, objectId: string, classId: string): Promise<string> {
-        const googleProps = await GoogleManagerService.getGoogleWalletIssuePropsFromPass(universityData, careerData.name, cityData.name, data);
+    private static async getInstallLink_Google(googleWalletManager: GoogleWalletManager, universityData: University, data: Pass, careerData: Career, objectId: string, classId: string): Promise<string> {
+        const googleProps = await GoogleManagerService.getGoogleWalletIssuePropsFromPass(universityData, careerData.name, data);
 
         const installLink = await googleWalletManager.createPass(objectId, classId, googleProps, process.env.NEXT_PUBLIC_ORIGIN!);
 
@@ -197,7 +195,8 @@ export class PassService {
         if(pass === null) {
             throw new Error('Pass not found with serial number: ' + serialNumber);
         }
-        const passBuffer = await AppleManagerService.generatePass(pass);
+        const careerData = await CareerRepository.getCareerByCode(pass.universityId, pass.careerId);
+        const passBuffer = await AppleManagerService.generatePass(pass, careerData.name);
         return passBuffer;
     }
 
@@ -211,7 +210,8 @@ export class PassService {
 
             await PassRepository.update_AppleWalletSerialNumber(uniqueIdentifier, careerCode, universityId, serialNumberWithoutDashes);
         }
-        const passBuffer = await AppleManagerService.generatePass(data);
+        const careerData = await CareerRepository.getCareerByCode(data.universityId, data.careerId);
+        const passBuffer = await AppleManagerService.generatePass(data, careerData.name);
         return passBuffer;
     }
 }

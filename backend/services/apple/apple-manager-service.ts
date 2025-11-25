@@ -1,12 +1,12 @@
 import { AppleDeviceRepository } from "@/backend/db/repositories/apple-device-repository";
-import { CareerRepository } from "@/backend/db/repositories/career-repository";
-import { CityRepository } from "@/backend/db/repositories/city-repository";
 import { PassRepository } from "@/backend/db/repositories/pass-repository";
 import { UniversityRepository } from "@/backend/db/repositories/university-repository";
 import { getPassStatusLabel, getPaymentStatusLabel, Pass } from "pases-universitarios";
 import { AppleWalletCredentials, AppleWalletImages, AppleWalletIssueProps, AppleWalletManager, PassFieldContent } from "pases-universitarios/wallet";
 import path from "path";
 import fs from "fs/promises";
+import axios from "axios";
+import { S3Service } from "../s3/s3";
 
 
 export class AppleManagerService {
@@ -30,7 +30,7 @@ export class AppleManagerService {
         await AppleDeviceRepository.unregisterDevice(deviceLibraryIdentifier, passTypeIdentifier, serialNumber);
     }
 
-    public static async generatePass(pass: Pass): Promise<Buffer> {
+    public static async generatePass(pass: Pass, careerName: string): Promise<Buffer> {
         const serialNumber = pass.appleWalletSerialNumber;
         if(serialNumber === null) {
             throw new Error('Serial number not found for pass: ' + pass.uniqueIdentifier);
@@ -91,9 +91,9 @@ export class AppleManagerService {
 
         const passProps: AppleWalletIssueProps = {
             description: "Pase Universitario",
-            backgroundColorRgb: "rgb(13,30,53)",
-            foregroundColorRgb: "rgb(255,239,217)",
-            labelColorRgb: "rgb(240,119,48)",
+            backgroundColorRgb: "rgb(22,22,22)",
+            foregroundColorRgb: "rgb(255,255,255)",
+            labelColorRgb: "rgb(219,255,85)",
             serialNumber: pass.appleWalletSerialNumber!,
             header: {
                 value: pass.uniqueIdentifier,
@@ -107,7 +107,7 @@ export class AppleManagerService {
             primaryField: {
                 value: pass.name,
                 key: "name",
-                label: "RutaPro",
+                label: careerName,
             },
             secondaryFields: [
                 {
@@ -140,6 +140,21 @@ export class AppleManagerService {
             backFields: backFields
         }
 
+        const image1Response = await axios.get(S3Service.getImageUrl(pass.photo1Url), {
+            responseType: 'arraybuffer'
+        });
+        const image2Response = await axios.get(S3Service.getImageUrl(pass.photo2Url), {
+            responseType: 'arraybuffer'
+        });
+        const image3Response = await axios.get(S3Service.getImageUrl(pass.photo3Url), {
+            responseType: 'arraybuffer'
+        });
+        
+        // Convert the arraybuffer to a Buffer
+        const image1Buffer = Buffer.from(image1Response.data);
+        const image2Buffer = Buffer.from(image2Response.data);
+        const image3Buffer = Buffer.from(image3Response.data);
+
         const images: AppleWalletImages = {
             logo: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'icon_ruta.png'))),
             logoX2: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'icon_ruta2.png'))),
@@ -147,9 +162,9 @@ export class AppleManagerService {
             icon: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'RutaProIcon.png'))),
             iconX2: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'RutaProIcon2.png'))),
             iconX3: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'RutaProIcon3.png'))),
-            thumbnail: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'thumbnail.png'))),
-            thumbnailX2: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'thumbnail.png'))),
-            thumbnailX3: Buffer.from(await fs.readFile(path.join(process.cwd(), 'backend', 'services', 'apple', 'testImages', 'thumbnail.png'))),
+            thumbnail: image1Buffer,
+            thumbnailX2: image2Buffer,
+            thumbnailX3: image3Buffer,
         }
 
         const origin = `${process.env.NEXT_PUBLIC_ORIGIN!}/api/apple-passes`;
