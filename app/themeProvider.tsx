@@ -1,13 +1,13 @@
-"use client";
-
-import { HeroUIProvider } from "@heroui/react";
-
-const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    return(
-        <HeroUIProvider>
-            {children}
-        </HeroUIProvider>
-    );
+"use client"
+ 
+import * as React from "react"
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+ 
+function ThemeProvider({
+  children,
+  ...props
+}: React.ComponentProps<typeof NextThemesProvider>) {
+  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
 }
 
 export default ThemeProvider;

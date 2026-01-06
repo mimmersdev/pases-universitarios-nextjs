@@ -1,30 +1,37 @@
 import apiClient from "@/app/api-client";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 
 interface GoogleInstallData {
     installLink: string;
 }
 
-const fetchGoogleInstallData = async (
-    universityId: string,
-    uniqueIdentifier: string,
-    careerCode: string
-): Promise<GoogleInstallData> => {
+interface GoogleInstallParams {
+    universityId: string;
+    uniqueIdentifier: string;
+    careerCode: string;
+    installClient: boolean;
+}
+
+const fetchGoogleInstallData = async ({
+    universityId,
+    uniqueIdentifier,
+    careerCode,
+    installClient
+}: GoogleInstallParams): Promise<GoogleInstallData> => {
     const response = await apiClient.get(
-        `/university/${universityId}/pass/${encodeURIComponent(uniqueIdentifier)}/${encodeURIComponent(careerCode)}/pass-info/google`
+        `/university/${universityId}/pass/${encodeURIComponent(uniqueIdentifier)}/${encodeURIComponent(careerCode)}/pass-info/google`,
+        {
+            params: {
+                installClient: installClient,
+            }
+        }
     );
     return response.data;
 };
 
-export const useGoogleInstallData = (
-    universityId: string,
-    uniqueIdentifier: string,
-    careerCode: string
-) => {
-    return useQuery({
-        queryKey: ['pass', 'google-install', universityId, uniqueIdentifier, careerCode],
-        queryFn: () => fetchGoogleInstallData(universityId, uniqueIdentifier, careerCode),
-        enabled: !!universityId && !!uniqueIdentifier && !!careerCode, // Only fetch if all params exist
+export const useGoogleInstallData = () => {
+    return useMutation({
+        mutationFn: fetchGoogleInstallData,
     });
 };
 

@@ -2,13 +2,15 @@ import { PassService } from "@/backend/services/pass-service";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
-    _: NextRequest,
+    request: NextRequest,
     context: { params: Promise<{ universityId: string, uniqueIdentifier: string, careerCode: string }> }
 ) {
     try {
         const { universityId, uniqueIdentifier, careerCode } = await context.params;
+        const searchParams = new URL(request.url).searchParams;
+        const installClient = searchParams.get('installClient') === 'true';
 
-        const passBuffer = await PassService.getApplePassInfo(universityId, uniqueIdentifier, careerCode);
+        const passBuffer = await PassService.getApplePassInfo(universityId, uniqueIdentifier, careerCode, installClient);
 
         return new NextResponse(Buffer.from(passBuffer), {
             headers: {

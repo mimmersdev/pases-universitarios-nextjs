@@ -1,4 +1,5 @@
 import { CareerService } from "@/backend/services/career-service";
+import { careerPaginationRequestSchema } from "@/domain/FilteredPagination";
 import { PaginationRequest } from "mimmers-core-nodejs";
 import { NextResponse } from "next/server";
 import { createCareerSchema } from "pases-universitarios";
@@ -15,11 +16,22 @@ export async function GET(
         const { searchParams } = new URL(request.url);
         const page = Number(searchParams.get("page")) || 0;
         const size = Number(searchParams.get("size")) || 10;
+        const sortCode = searchParams.get("sortCode") || undefined;
+        const sortName = searchParams.get("sortName") || undefined;
+        const sortCreatedAt = searchParams.get("sortCreatedAt") || undefined;
+        const sortUpdatedAt = searchParams.get("sortUpdatedAt") || undefined;
+        const searchName = searchParams.get("searchName") || undefined;
 
-        const pRequest: PaginationRequest = {
+        const pRequest = careerPaginationRequestSchema.parse({
             page,
-            size
-        }
+            size,
+            sortCode,
+            sortName,
+            sortCreatedAt,
+            sortUpdatedAt,
+            searchName
+        })
+        
         const careers = await CareerService.getPaginatedCareers(universityId, pRequest);
         return NextResponse.json(careers);
     } catch (error) {

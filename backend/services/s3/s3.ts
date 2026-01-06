@@ -1,8 +1,10 @@
 import { DeleteObjectCommand, DeleteObjectCommandInput, GetObjectCommand, PutObjectCommand, PutObjectCommandInput, S3Client } from "@aws-sdk/client-s3";
 import { S3Error, S3ErrorType } from "@/domain/Error";
+import { randomUUID } from "crypto";
 
 export enum S3_Folders {
     PASSES_IMAGES = 'passes-images',
+    QR_CODES = 'qr-codes',
 }
 
 class ErrorHandler_S3 {
@@ -85,7 +87,7 @@ const delParams = (bucket: string, filePath: string) => {
 }
 
 const getRandomFileName = (extension: string) => {
-    const fileName = crypto.randomUUID().replace(/-/g, '');
+    const fileName = randomUUID().replace(/-/g, '');
     return {
         fileName,
         fileNameWithExtension: `${fileName}.${extension}`
@@ -105,8 +107,10 @@ export class S3Service {
      */
     public static async uploadBuffer(buffer: Buffer, mimetype: string, folder: S3_Folders): Promise<string> {
         try {
+            // Extract file extension from mimetype (e.g., 'image/png' -> 'png')
+            const extension = mimetype.split('/')[1] || 'bin';
             // Create the file name
-            const { fileNameWithExtension } = getRandomFileName(mimetype);
+            const { fileNameWithExtension } = getRandomFileName(extension);
             const filePath = `${folder}/${fileNameWithExtension}`;
             // Create the file path
             const fullFilePath = `${this.getEnvironmentFolder()}/${folder}/${fileNameWithExtension}`;

@@ -7,8 +7,10 @@ export async function GET(
 ) {
     try {
         const { universityId, uniqueIdentifier, careerCode } = await context.params;
-        const installLink = await PassService.getInstallationData_Google(universityId, uniqueIdentifier, careerCode);
-        return NextResponse.json({ installLink });
+        const searchParams = new URL(request.url).searchParams;
+        const installClient = searchParams.get('installClient') === 'true';
+        const installData = await PassService.getInstallationData_Google(universityId, uniqueIdentifier, careerCode, installClient);
+        return NextResponse.json(installData);
     } catch (error) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }

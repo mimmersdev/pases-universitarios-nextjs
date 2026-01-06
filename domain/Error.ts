@@ -76,12 +76,12 @@ export class ServiceError extends Error implements UserReadableError {
     ) {
         super(`Service error: ${origin} - ${type}`);
         // Log code
-        console.error(`Service error: ${this.getError()}`);
+        // console.error(`Service error: ${this.getError()}`);
         // Log original error
-        if (this.cause) {
-            console.error('Details:');
-            console.error(this.cause);
-        }
+        // if (this.cause) {
+        //     console.error('Details:');
+        //     console.error(this.cause);
+        // }
     }
 
     getError(): string {

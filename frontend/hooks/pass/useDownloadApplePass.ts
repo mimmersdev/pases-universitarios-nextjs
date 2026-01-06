@@ -4,12 +4,16 @@ import { useMutation } from "@tanstack/react-query";
 const downloadApplePass = async (
     universityId: string,
     uniqueIdentifier: string,
-    careerCode: string
+    careerCode: string,
+    installClient: boolean
 ): Promise<void> => {
     const response = await apiClient.get(
         `/university/${universityId}/pass/${encodeURIComponent(uniqueIdentifier)}/${encodeURIComponent(careerCode)}/pass-info/apple`,
         {
             responseType: 'blob', // Important: tell axios to handle as blob
+            params: {
+                installClient: installClient,
+            }
         }
     );
 
@@ -38,11 +42,13 @@ export const useDownloadApplePass = () => {
             universityId,
             uniqueIdentifier,
             careerCode,
+            installClient,
         }: {
             universityId: string;
             uniqueIdentifier: string;
             careerCode: string;
-        }) => downloadApplePass(universityId, uniqueIdentifier, careerCode),
+            installClient: boolean;
+        }) => downloadApplePass(universityId, uniqueIdentifier, careerCode, installClient),
     });
 };
 

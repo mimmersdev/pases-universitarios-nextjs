@@ -1,6 +1,60 @@
 import { paymentStatusList } from "pases-universitarios";
 import { type ExcelFieldDefinition } from "@/utils";
 
+export const updatePaidExcelFieldDefinitions: ExcelFieldDefinition[] = [
+    {
+        title: "uniqueIdentifier",
+        type: "string",
+    },
+    {
+        title: "careerId",
+        type: "string",
+    }
+]
+
+export const updatePassDueExcelFieldDefinitions: ExcelFieldDefinition[] = [
+    {
+        title: "uniqueIdentifier",
+        type: "string",
+    },
+    {
+        title: "careerId",
+        type: "string",
+    },
+    {
+        title: "totalToPay",
+        type: "number",
+    },
+    {
+        title: "startDueDate",
+        type: "date",
+    },
+    {
+        title: "endDueDate",
+        type: "date",
+    },
+    {
+        title: "onlinePaymentLink",
+        type: "string",
+        optional: true,
+    }
+]
+
+export const updateCashbackExcelFieldDefinitions: ExcelFieldDefinition[] = [
+    {
+        title: "uniqueIdentifier",
+        type: "string",
+    },
+    {
+        title: "careerId",
+        type: "string",
+    },
+    {
+        title: "cashback",
+        type: "number",
+    },
+];
+
 export const passExcelFieldDefinitions: ExcelFieldDefinition[] = [
     {
         title: "uniqueIdentifier",

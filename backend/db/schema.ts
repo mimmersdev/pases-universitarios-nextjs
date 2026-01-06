@@ -70,6 +70,8 @@ export const passes = pgTable('passes', {
     photo1Url: text('photo1_url').notNull(),
     photo2Url: text('photo2_url').notNull(),
     photo3Url: text('photo3_url').notNull(),
+    photoGoogleHeroUrl: text('photo_google_hero_url').notNull(),
+    qrCodeUrl: text('qr_code_url').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 }, (t) => [
@@ -110,6 +112,7 @@ export const passUpdates = pgTable('pass_updates', {
     careerId: text('career_id').notNull(),
     universityId: uuid('university_id').notNull(),
     totalToPay: decimal('total_to_pay').notNull(),
+    cashback: decimal('cashback').notNull(),
     endDueDate: timestamp('end_due_date', { withTimezone: true }).notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 }, (t) => [

@@ -1,6 +1,7 @@
 import { CreateCareer, Career, UpdateCareer } from "pases-universitarios";
 import { CareerRepository } from "../db/repositories/career-repository";
-import { PaginationRequest, PaginationResponse } from "mimmers-core-nodejs";
+import { PaginationResponse } from "mimmers-core-nodejs";
+import { CareerPaginationRequest } from "@/domain/FilteredPagination";
 
 export class CareerService {
     public static async createCareer(universityId: string, req: CreateCareer): Promise<Career> {
@@ -13,7 +14,7 @@ export class CareerService {
         return career;
     }
 
-    public static async getPaginatedCareers(universityId: string, pRequest: PaginationRequest): Promise<PaginationResponse<Career>> {
+    public static async getPaginatedCareers(universityId: string, pRequest: CareerPaginationRequest): Promise<PaginationResponse<Career>> {
         const career = await CareerRepository.getPaginatedCareers(universityId, pRequest);
         return career;
     }

@@ -14,3 +14,14 @@ export const DB_CONFIGURATION = {
         RETRY_ATTEMPTS: 2
     }
 }
+
+export const WALLET_CONFIGURATION = {
+    CHUNK_SIZES: {
+        UPDATE_PASS: 100,
+    },
+    CONNECTION: {
+        MAX_CONCURRENT_CHUNKS: 5,
+        TIMEOUT: 25000,
+        RETRY_ATTEMPTS: 2
+    }
+}

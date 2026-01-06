@@ -1,6 +1,7 @@
 import { CreateUniversity, University, UpdateUniversity } from "pases-universitarios";
 import { UniversityRepository } from "../db/repositories/university-repository";
-import { PaginationRequest, PaginationResponse } from "mimmers-core-nodejs";
+import { PaginationResponse } from "mimmers-core-nodejs";
+import { UniversityPaginationRequest } from "@/domain/FilteredPagination";
 
 export class UniversityService {
     public static async createUniversity(req: CreateUniversity): Promise<University> {
@@ -13,7 +14,7 @@ export class UniversityService {
         return university;
     }
 
-    public static async getPaginatedUniversities(pRequest: PaginationRequest): Promise<PaginationResponse<University>> {
+    public static async getPaginatedUniversities(pRequest: UniversityPaginationRequest): Promise<PaginationResponse<University>> {
         const universities = await UniversityRepository.getPaginatedUniversities(pRequest);
         return universities;
     }

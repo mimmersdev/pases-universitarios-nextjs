@@ -1,5 +1,5 @@
 import { PassService } from "@/backend/services/pass-service";
-import { FilteredPaginationRequest, filteredPaginationRequestSchema } from "@/domain/FilteredPagination";
+import { FilterDateComparation, FilteredPaginationRequest, filteredPaginationRequestSchema, FilterIncludeExcludeType, passPaginationRequestSchema } from "@/domain/FilteredPagination";
 import { NextResponse } from "next/server";
 import { z } from "zod/v4";
 
@@ -16,12 +16,114 @@ export async function POST(
         const { universityId } = await context.params;
         const body = await request.json() as SendNotificationRequest;
         
-        // Validate filters
-        const validatedFilters = filteredPaginationRequestSchema.parse({
-            page: body.page,
-            size: body.size,
-            filters: body.filters
-        });
+        const { searchParams } = new URL(request.url);
+
+        // Parse basic pagination params
+        const page = Number(searchParams.get("page")) || 0;
+        const size = Number(searchParams.get("size")) || 10;
+
+        // Reconstruct the PassPaginationRequest object from flattened query params
+        const pRequest: any = {
+            page,
+            size,
+        };
+
+        // Helper function to get array values from searchParams
+        // Axios serializes arrays as "key[]=value1&key[]=value2", so we need to check both formats
+        const getArrayValues = (key: string): string[] => {
+            // Try without brackets first (standard format)
+            const valuesWithoutBrackets = searchParams.getAll(key);
+            if (valuesWithoutBrackets.length > 0) {
+                return valuesWithoutBrackets;
+            }
+            // Try with brackets (axios default format)
+            const valuesWithBrackets = searchParams.getAll(`${key}[]`);
+            if (valuesWithBrackets.length > 0) {
+                return valuesWithBrackets;
+            }
+            return [];
+        };
+
+        // Helper function to reconstruct Include/Exclude filters
+        const reconstructIncludeExcludeFilter = (typeParam: string | null, valuesKey: string) => {
+            if (!typeParam) return undefined;
+            const values = getArrayValues(valuesKey);
+            if (values.length === 0) return undefined;
+            return {
+                type: typeParam as FilterIncludeExcludeType,
+                values: values,
+            };
+        };
+
+        // Include/Exclude filters
+        pRequest.career = reconstructIncludeExcludeFilter(
+            searchParams.get("careerType"),
+            "careerValues"
+        );
+        pRequest.semester = reconstructIncludeExcludeFilter(
+            searchParams.get("semesterType"),
+            "semesterValues"
+        );
+        pRequest.enrollmentYear = reconstructIncludeExcludeFilter(
+            searchParams.get("enrollmentYearType"),
+            "enrollmentYearValues"
+        );
+        pRequest.paymentStatus = reconstructIncludeExcludeFilter(
+            searchParams.get("paymentStatusType"),
+            "paymentStatusValues"
+        );
+        pRequest.studentStatus = reconstructIncludeExcludeFilter(
+            searchParams.get("studentStatusType"),
+            "studentStatusValues"
+        );
+        pRequest.passStatus = reconstructIncludeExcludeFilter(
+            searchParams.get("passStatusType"),
+            "passStatusValues"
+        );
+
+        // Range filters
+        const totalToPayMin = searchParams.get("totalToPayMin");
+        const totalToPayMax = searchParams.get("totalToPayMax");
+        if (totalToPayMin && totalToPayMax) {
+            pRequest.totalToPay = {
+                min: Number(totalToPayMin),
+                max: Number(totalToPayMax),
+            };
+        }
+
+        const cashbackMin = searchParams.get("cashbackMin");
+        const cashbackMax = searchParams.get("cashbackMax");
+        if (cashbackMin && cashbackMax) {
+            pRequest.cashback = {
+                min: Number(cashbackMin),
+                max: Number(cashbackMax),
+            };
+        }
+
+        // Date filter
+        const endDueDateType = searchParams.get("endDueDateType");
+        if (endDueDateType === "singleDate") {
+            const value = searchParams.get("endDueDateValue");
+            const comparation = searchParams.get("endDueDateComparation");
+            if (value && comparation) {
+                pRequest.endDueDate = {
+                    value: value,
+                    comparation: comparation as FilterDateComparation,
+                };
+            }
+        } else if (endDueDateType === "range") {
+            const startDate = searchParams.get("endDueDateStart");
+            const endDate = searchParams.get("endDueDateEnd");
+            if (startDate && endDate) {
+                pRequest.endDueDate = {
+                    startDate: startDate,
+                    endDate: endDate,
+                };
+            }
+        }
+
+        // Validate with Zod schema
+        const validatedFilters = passPaginationRequestSchema.parse(pRequest);
         
         // Validate header and body
         if (!body.header || typeof body.header !== 'string') {

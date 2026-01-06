@@ -1,5 +1,5 @@
 {
-  "id": "62380fb7-2cbf-4c43-9135-37b334a43c1b",
+  "id": "c0f67dd8-6f52-41f4-b82d-058b4561aba2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -777,6 +777,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "cashback": {
+          "name": "cashback",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
         "end_due_date": {
           "name": "end_due_date",
           "type": "timestamp with time zone",
@@ -992,6 +998,12 @@
         },
         "photo3_url": {
           "name": "photo3_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "photo_google_hero_url": {
+          "name": "photo_google_hero_url",
           "type": "text",
           "primaryKey": false,
           "notNull": true

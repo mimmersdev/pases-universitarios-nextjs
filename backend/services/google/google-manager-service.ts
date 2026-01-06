@@ -26,7 +26,7 @@ export class GoogleManagerService {
             cardTitle: careerName,
             header: pass.name,
             subheader: "RutaPro",
-            heroUri: S3Service.getImageUrl(pass.photo3Url),
+            heroUri: S3Service.getImageUrl(pass.photoGoogleHeroUrl),
             hexBackgroundColor: "#0d1e35",
             logoUri: "https://avex-rutapro.s3.us-east-1.amazonaws.com/RutaProIcon3.png",
             barcode: {

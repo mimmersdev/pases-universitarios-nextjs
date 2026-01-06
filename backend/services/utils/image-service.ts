@@ -11,6 +11,7 @@ export class ImageService {
         originalUrl: string;
         reducedBy2Url: string;
         reducedBy3Url: string;
+        googleHeroUrl: string;
     }> {
         try {
             // Fetch the image with arraybuffer response type to get raw binary data
@@ -28,12 +29,16 @@ export class ImageService {
             // Generate 3 different sizes from the circular image
             const { original, reducedBy2, reducedBy3 } = await ImageProcessingService.resizeImages_ReduceFromOriginal(imageWithCircularStencil);
 
-            const [originalUrl, reducedBy2Url, reducedBy3Url] = await Promise.all([
+            // Generate image with padding for google wallet
+            const googleHeroImage = await ImageProcessingService.placeImageInCenterCanvas(imageWithCircularStencil);
+
+            const [originalUrl, reducedBy2Url, reducedBy3Url, googleHeroUrl] = await Promise.all([
                 S3Service.uploadBuffer(original, 'image/png', S3_Folders.PASSES_IMAGES),
                 S3Service.uploadBuffer(reducedBy2, 'image/png', S3_Folders.PASSES_IMAGES),
-                S3Service.uploadBuffer(reducedBy3, 'image/png', S3_Folders.PASSES_IMAGES)
+                S3Service.uploadBuffer(reducedBy3, 'image/png', S3_Folders.PASSES_IMAGES),
+                S3Service.uploadBuffer(googleHeroImage, 'image/png', S3_Folders.PASSES_IMAGES)
             ]);
-            return { originalUrl, reducedBy2Url, reducedBy3Url };
+            return { originalUrl, reducedBy2Url, reducedBy3Url, googleHeroUrl };
         } catch (error) {
             throw errorHandler.handleError(ServiceErrorType.IMAGE_NOT_FOUND, error);
         }

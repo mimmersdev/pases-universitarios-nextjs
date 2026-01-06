@@ -178,4 +178,66 @@ export class ImageProcessingService {
 
         return finalImage;
     }
+
+    /**
+     * Places an image in the center of a 1032x500 PNG canvas.
+     * The input image is scaled to 430x430 and centered on the canvas.
+     * 
+     * @param inputBuffer - The input image buffer (any format)
+     * @returns PNG buffer with dimensions 1032x500 containing the centered 430x430 image
+     */
+    public static async placeImageInCenterCanvas(
+        inputBuffer: Buffer
+    ): Promise<Buffer> {
+        const metadata = await sharp(inputBuffer).metadata();
+        
+        if (!metadata.width || !metadata.height) {
+            throw errorHandler.handleError(ServiceErrorType.INVALID_SIZE);
+        }
+
+        // Canvas dimensions
+        const canvasWidth = 1032;
+        const canvasHeight = 500;
+        
+        // Image dimensions to scale to
+        const imageWidth = 430;
+        const imageHeight = 430;
+
+        // Calculate center position
+        const left = Math.floor((canvasWidth - imageWidth) / 2);
+        const top = Math.floor((canvasHeight - imageHeight) / 2);
+
+        // Resize input image to 430x430
+        const resizedImage = await sharp(inputBuffer)
+            .resize(imageWidth, imageHeight, {
+                fit: 'cover',
+                position: 'center'
+            })
+            .toBuffer();
+
+        // Create transparent canvas and composite the resized image
+        const finalImage = await sharp({
+            create: {
+                width: canvasWidth,
+                height: canvasHeight,
+                channels: 4,
+                background: { r: 0, g: 0, b: 0, alpha: 0 }
+            }
+        })
+            .png()
+            .composite([
+                {
+                    input: resizedImage,
+                    left: left,
+                    top: top
+                }
+            ])
+            .png({
+                quality: 90,
+                palette: true,
+            })
+            .toBuffer();
+
+        return finalImage;
+    }
 }

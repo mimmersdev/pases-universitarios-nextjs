@@ -1,27 +1,33 @@
 import apiClient from "@/app/api-client";
+import { UniversityPaginationRequest } from "@/domain/FilteredPagination";
 import { useQuery } from "@tanstack/react-query";
 import { PaginationResponse } from "mimmers-core-nodejs";
 import { University } from "pases-universitarios";
 
-interface UseUniversitiesProps {
-    page: number;
-    size: number;
-}
-
-const fetchUniversities = async ({ page, size }: UseUniversitiesProps): Promise<PaginationResponse<University>> => {
+const fetchUniversities = async (pRequest: UniversityPaginationRequest): Promise<PaginationResponse<University>> => {
     const response = await apiClient.get('/university', {
         params: {
-            page,
-            size
+            page: pRequest.page,
+            size: pRequest.size,
+            sortName: pRequest.sortName,
+            sortCreatedAt: pRequest.sortCreatedAt,
+            sortUpdatedAt: pRequest.sortUpdatedAt
         }
     });
     return response.data;
 }
 
-export const useUniversities = ({ page, size }: UseUniversitiesProps) => {
+export const useUniversities = (pRequest: UniversityPaginationRequest) => {
     return useQuery({
-        queryKey: ['universities', page, size],
-        queryFn: () => fetchUniversities({ page, size }),
+        queryKey: [
+            'universities',
+            pRequest.page,
+            pRequest.size,
+            pRequest.sortName,
+            pRequest.sortCreatedAt,
+            pRequest.sortUpdatedAt
+        ],
+        queryFn: () => fetchUniversities(pRequest),
         placeholderData: (previousData) => previousData,
     });
 }

@@ -3,8 +3,9 @@ import { ErrorHandler_Repository } from "./ErrorHandler";
 import { CreateUniversity, University, UpdateUniversity } from "pases-universitarios";
 import { db } from "../config";
 import { universities } from "../schema";
-import { count, eq } from "drizzle-orm";
+import { asc, count, desc, eq, and, SQL } from "drizzle-orm";
 import { PaginationRequest, PaginationResponse } from "mimmers-core-nodejs";
+import { SortType, UniversityPaginationRequest } from "@/domain/FilteredPagination";
 
 const errorHandler = new ErrorHandler_Repository(RepositoryErrorOrigin.UNIVERSITIES);
 
@@ -32,10 +33,38 @@ export class UniversityRepository {
         }
     }
 
-    public static async getPaginatedUniversities(pRequest: PaginationRequest): Promise<PaginationResponse<University>> {
+    public static async getPaginatedUniversities(pRequest: UniversityPaginationRequest): Promise<PaginationResponse<University>> {
         try {
+            const sortContiditions: SQL[] = [];
+            if(pRequest.sortName) {
+                if(pRequest.sortName === SortType.ASC) {
+                    sortContiditions.push(asc(universities.name));
+                } else {
+                    sortContiditions.push(desc(universities.name));
+                }
+            }
+            if(pRequest.sortCreatedAt) {
+                if(pRequest.sortCreatedAt === SortType.ASC) {
+                    sortContiditions.push(asc(universities.createdAt));
+                } else {
+                    sortContiditions.push(desc(universities.createdAt));
+                }
+            }
+            if(pRequest.sortUpdatedAt) {
+                if(pRequest.sortUpdatedAt === SortType.ASC) {
+                    sortContiditions.push(asc(universities.updatedAt));
+                } else {
+                    sortContiditions.push(desc(universities.updatedAt));
+                }
+            }
+
+            // If there are no sort conditions, default to createdAt ascending
+            if(sortContiditions.length === 0) {
+                sortContiditions.push(asc(universities.createdAt));
+            }
+
             const [result, total] = await Promise.all([
-                db.select().from(universities).limit(pRequest.size).offset(pRequest.page * pRequest.size),
+                db.select().from(universities).orderBy(...sortContiditions).limit(pRequest.size).offset(pRequest.page * pRequest.size),
                 db.select({ count: count() }).from(universities)
             ]);
             return {

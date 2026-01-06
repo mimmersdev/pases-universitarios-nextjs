@@ -5,6 +5,7 @@ export type ExcelDataType = "string" | "number" | "boolean" | "date";
 export type ExcelFieldDefinition = {
     title: string;
     type: ExcelDataType;
+    optional?: boolean;
     description?: string;
     validValues?: string[];
     example?: string;

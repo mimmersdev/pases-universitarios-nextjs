@@ -1,13 +1,12 @@
 import { RepositoryErrorOrigin, RepositoryErrorType } from "@/domain/Error";
 import { ErrorHandler_Repository } from "./ErrorHandler";
-import { appleDevices, passes, passUpdates } from "../schema";
-import { CreatePassBackend, InstallationStatus, ListComparation, Pass, PassStatus, PaymentStatus, SimplePass, SimplePass_Extra, UpdatePassDue } from "pases-universitarios";
+import { appleDevices, careers, passes, passUpdates } from "../schema";
+import { CreatePassBackend, InstallationStatus, Pass, PassStatus, PaymentStatus, SimplePass, StudentStatus, UpdateCashback, UpdatePassDue } from "pases-universitarios";
 import { db } from "../config";
 import { PaginationResponse, processChunksInParallel, processChunksInParallelWithSum, processPaginatedWithProgress } from "mimmers-core-nodejs";
 import { DB_CONFIGURATION } from "@/config/database";
 import { and, asc, between, count, eq, gt, gte, inArray, lt, lte, notInArray, or, SQL, sql } from "drizzle-orm";
-import { FilteredPaginationRequest } from "@/domain/FilteredPagination";
-import { buildComparison } from "../utils";
+import { FilterDateComparation, FilterIncludeExcludeType, PassPaginationRequest } from "@/domain/FilteredPagination";
 
 const errorHandler = new ErrorHandler_Repository(RepositoryErrorOrigin.PASSES);
 
@@ -29,7 +28,7 @@ type SimplePassSelectType = {
 
 export class PassRepository {
 
-    public static async createPass(universityId: string, req: CreatePassBackend,): Promise<Pass> {
+    public static async createPass(universityId: string, req: CreatePassBackend): Promise<Pass> {
         try {
             const [pass] = await db.insert(passes).values({
                 ...req,
@@ -40,8 +39,20 @@ export class PassRepository {
                 photo1Url: req.photo1Url,
                 photo2Url: req.photo2Url,
                 photo3Url: req.photo3Url,
+                photoGoogleHeroUrl: req.photoGoogleHeroUrl,
             }).returning();
-            return this.mapToDomain(pass);
+            const career = await db.query.careers.findFirst({
+                where: and(eq(careers.code, pass.careerId), eq(careers.universityId, universityId)),
+            });
+
+            if (career === undefined) {
+                throw errorHandler.handleError(RepositoryErrorType.NOT_FOUND);
+            }
+
+            return this.mapToDomain({
+                ...pass,
+                careerName: career.name,
+            });
         } catch (error) {
             throw errorHandler.handleError(RepositoryErrorType.CREATE, error);
         }
@@ -58,6 +69,7 @@ export class PassRepository {
                 photo1Url: pass.photo1Url,
                 photo2Url: pass.photo2Url,
                 photo3Url: pass.photo3Url,
+                qrCodeUrl: pass.qrCodeUrl,
             })))
             return result.rowCount || 0;
         } catch (error) {
@@ -69,11 +81,21 @@ export class PassRepository {
         try {
             const pass = await db.query.passes.findFirst({
                 where: and(eq(passes.uniqueIdentifier, uniqueIdentifier), eq(passes.careerId, careerId), eq(passes.universityId, universityId)),
+                with: {
+                    career: {
+                        columns: {
+                            name: true
+                        }
+                    },
+                },
             });
             if (pass === undefined) {
                 throw errorHandler.handleError(RepositoryErrorType.NOT_FOUND);
             }
-            return this.mapToDomain(pass);
+            return this.mapToDomain({
+                ...pass,
+                careerName: pass.career.name,
+            });
         } catch (error) {
             throw errorHandler.handleError(RepositoryErrorType.GET, error);
         }
@@ -83,11 +105,21 @@ export class PassRepository {
         try {
             const pass = await db.query.passes.findFirst({
                 where: eq(passes.appleWalletSerialNumber, serialNumber),
+                with: {
+                    career: {
+                        columns: {
+                            name: true
+                        }
+                    },
+                },
             });
             if (pass === undefined) {
                 return null;
             }
-            return this.mapToDomain(pass);
+            return this.mapToDomain({
+                ...pass,
+                careerName: pass.career.name,
+            });
         } catch (error) {
             throw errorHandler.handleError(RepositoryErrorType.GET, error);
         }
@@ -99,12 +131,16 @@ export class PassRepository {
                 select()
                 .from(passes)
                 .innerJoin(appleDevices, and(eq(passes.uniqueIdentifier, appleDevices.uniqueIdentifier), eq(passes.careerId, appleDevices.careerId), eq(passes.universityId, appleDevices.universityId)))
+                .innerJoin(careers, and(eq(passes.careerId, careers.code), eq(passes.universityId, careers.universityId)))
                 .where(and(eq(passes.appleWalletSerialNumber, serialNumber), eq(appleDevices.passTypeIdentifier, passTypeIdentifier)))
                 .limit(1);
             if (pass.length === 0) {
                 return null;
             }
-            return this.mapToDomain(pass[0].passes);
+            return this.mapToDomain({
+                ...pass[0].passes,
+                careerName: pass[0].careers.name,
+            });
         } catch (error) {
             throw errorHandler.handleError(RepositoryErrorType.GET, error);
         }
@@ -141,71 +177,128 @@ export class PassRepository {
         }
     }
 
-    public static async getPaginatedPasses(universityId: string, pRequest: FilteredPaginationRequest): Promise<PaginationResponse<Pass>> {
+    public static async getIdsInList(universityId: string, ids: { uniqueIdentifier: string, careerId: string }[]): Promise<{ uniqueIdentifier: string, careerId: string }[]> {
+        try {
+            if (ids.length === 0) {
+                return [];
+            }
+
+            const results = await processChunksInParallel(
+                ids,
+                DB_CONFIGURATION.CHUNK_SIZES.SIMPLE_QUERY,
+                async (chunk) => {
+                    // Build tuples for composite key matching (uniqueIdentifier, careerId)
+                    const tuples = chunk.map(id => sql`(${id.uniqueIdentifier}, ${id.careerId})`);
+
+                    const passesResult = await db.query.passes.findMany({
+                        where: and(
+                            sql`(${passes.uniqueIdentifier}, ${passes.careerId}) IN (${sql.join(tuples, sql`, `)})`,
+                            eq(passes.universityId, universityId)
+                        ),
+                        columns: {
+                            uniqueIdentifier: true,
+                            careerId: true,
+                        }
+                    });
+
+                    return passesResult
+                },
+                DB_CONFIGURATION.CONNECTION.MAX_CONCURRENT_CHUNKS
+            );
+
+            return results.flat();
+        } catch (error) {
+            throw errorHandler.handleError(RepositoryErrorType.GET, error);
+        }
+    }
+
+    public static async getPaginatedPasses(universityId: string, pRequest: PassPaginationRequest): Promise<PaginationResponse<Pass>> {
         try {
             const conditions: SQL[] = [
                 eq(passes.universityId, universityId),
             ];
 
-            if (pRequest.filters) {
-                const { filters } = pRequest;
-
-                // IN filters
-                if (filters.paymentStatus && filters.paymentStatus.length > 0) {
-                    conditions.push(inArray(passes.paymentStatus, filters.paymentStatus));
+            if (pRequest.career) {
+                if (pRequest.career.type === FilterIncludeExcludeType.Include) {
+                    conditions.push(inArray(passes.careerId, pRequest.career.values));
+                } else {
+                    conditions.push(notInArray(passes.careerId, pRequest.career.values));
                 }
+            }
+            if (pRequest.semester) {
+                if (pRequest.semester.type === FilterIncludeExcludeType.Include) {
+                    conditions.push(inArray(passes.semester, pRequest.semester.values.map(Number)));
+                } else {
+                    conditions.push(notInArray(passes.semester, pRequest.semester.values.map(Number)));
+                }
+            }
+            if (pRequest.enrollmentYear) {
+                conditions.push(gte(passes.enrollmentYear, pRequest.enrollmentYear.min));
+                conditions.push(lte(passes.enrollmentYear, pRequest.enrollmentYear.max));
+            }
 
-                // Complex filters
-                if (filters.careerId && filters.careerId.values.length > 0) {
-                    if (filters.careerId.comparation === ListComparation.Include) {
-                        conditions.push(inArray(passes.careerId, filters.careerId.values));
+            if (pRequest.paymentStatus) {
+                if (pRequest.paymentStatus.type === FilterIncludeExcludeType.Include) {
+                    conditions.push(inArray(passes.paymentStatus, pRequest.paymentStatus.values as PaymentStatus[]));
+                } else {
+                    conditions.push(notInArray(passes.paymentStatus, pRequest.paymentStatus.values as PaymentStatus[]));
+                }
+            }
+
+            if (pRequest.studentStatus) {
+                if (pRequest.studentStatus.type === FilterIncludeExcludeType.Include) {
+                    conditions.push(inArray(passes.studentStatus, pRequest.studentStatus.values as StudentStatus[]));
+                } else {
+                    conditions.push(notInArray(passes.studentStatus, pRequest.studentStatus.values as StudentStatus[]));
+                }
+            }
+
+            if (pRequest.passStatus) {
+                if (pRequest.passStatus.type === FilterIncludeExcludeType.Include) {
+                    conditions.push(inArray(passes.passStatus, pRequest.passStatus.values as PassStatus[]));
+                } else {
+                    conditions.push(notInArray(passes.passStatus, pRequest.passStatus.values as PassStatus[]));
+                }
+            }
+
+            if (pRequest.totalToPay) {
+                conditions.push(gte(passes.totalToPay, String(pRequest.totalToPay.min)));
+                conditions.push(lte(passes.totalToPay, String(pRequest.totalToPay.max)));
+            }
+            if (pRequest.cashback) {
+                conditions.push(gte(passes.cashback, String(pRequest.cashback.min)));
+                conditions.push(lte(passes.cashback, String(pRequest.cashback.max)));
+            }
+            if (pRequest.endDueDate) {
+                if ('value' in pRequest.endDueDate) {
+                    if (pRequest.endDueDate.comparation === FilterDateComparation.Before) {
+                        conditions.push(lte(passes.endDueDate, pRequest.endDueDate.value));
                     } else {
-                        conditions.push(notInArray(passes.careerId, filters.careerId.values));
+                        conditions.push(gte(passes.endDueDate, pRequest.endDueDate.value));
                     }
                 }
-
-                if (filters.semester) {
-                    if ('singleValue' in filters.semester) {
-                        const condition = buildComparison(passes.semester, filters.semester.singleValue, filters.semester.comparation);
-                        conditions.push(condition);
-                    } else {
-                        conditions.push(inArray(passes.semester, filters.semester.list));
-                    }
-                }
-
-                if (filters.enrollmentYear) {
-                    if ('singleValue' in filters.enrollmentYear) {
-                        const condition = buildComparison(passes.enrollmentYear, filters.enrollmentYear.singleValue, filters.enrollmentYear.comparation);
-                        conditions.push(condition);
-                    } else {
-                        conditions.push(inArray(passes.enrollmentYear, filters.enrollmentYear.list));
-                    }
-                }
-
-                if (filters.totalToPay) {
-                    const condition = buildComparison(passes.totalToPay, String(filters.totalToPay.singleValue), filters.totalToPay.comparation);
-                    conditions.push(condition);
-                }
-
-                if (filters.endDueDate) {
-                    if ('singleDate' in filters.endDueDate) {
-                        filters.endDueDate
-                        const condition = buildComparison(passes.endDueDate, filters.endDueDate.singleDate, filters.endDueDate.comparation);
-                        conditions.push(condition);
-                    } else {
-                        conditions.push(between(passes.endDueDate, filters.endDueDate.startDate, filters.endDueDate.endDate));
-                    }
+                else {
+                    conditions.push(between(passes.endDueDate, pRequest.endDueDate.startDate, pRequest.endDueDate.endDate));
                 }
             }
 
             const whereClause = and(...conditions);
 
             const [result, total] = await Promise.all([
-                db.select().from(passes).where(whereClause).limit(pRequest.size).offset(pRequest.page * pRequest.size),
+                db
+                    .select()
+                    .from(passes)
+                    .innerJoin(careers, and(eq(passes.careerId, careers.code), eq(passes.universityId, careers.universityId)))
+                    .where(whereClause)
+                    .limit(pRequest.size)
+                    .offset(pRequest.page * pRequest.size),
                 db.select({ count: count() }).from(passes).where(whereClause)
             ]);
             return {
-                content: result.map(this.mapToDomain),
+                content: result.map((pass) => this.mapToDomain({
+                    ...pass.passes,
+                    careerName: pass.careers.name,
+                })),
                 total: total[0].count,
                 page: pRequest.page,
                 size: pRequest.size
@@ -450,59 +543,73 @@ export class PassRepository {
         }
     }
 
-    public static async getPassesByFilters(universityId: string, pRequest: FilteredPaginationRequest): Promise<(Pass & { careerName: string })[]> {
+    public static async getPassesByFilters(universityId: string, pRequest: PassPaginationRequest): Promise<(Pass)[]> {
         try {
             const conditions: SQL[] = [
                 eq(passes.universityId, universityId),
             ];
 
-            if (pRequest.filters) {
-                const { filters } = pRequest;
-
-                // IN filters
-                if (filters.paymentStatus && filters.paymentStatus.length > 0) {
-                    conditions.push(inArray(passes.paymentStatus, filters.paymentStatus));
+            if (pRequest.career) {
+                if (pRequest.career.type === FilterIncludeExcludeType.Include) {
+                    conditions.push(inArray(passes.careerId, pRequest.career.values));
+                } else {
+                    conditions.push(notInArray(passes.careerId, pRequest.career.values));
                 }
+            }
+            if (pRequest.semester) {
+                if (pRequest.semester.type === FilterIncludeExcludeType.Include) {
+                    conditions.push(inArray(passes.semester, pRequest.semester.values.map(Number)));
+                } else {
+                    conditions.push(notInArray(passes.semester, pRequest.semester.values.map(Number)));
+                }
+            }
+            if (pRequest.enrollmentYear) {
+                conditions.push(gte(passes.enrollmentYear, pRequest.enrollmentYear.min));
+                conditions.push(lte(passes.enrollmentYear, pRequest.enrollmentYear.max));
+            }
 
-                // Complex filters
-                if (filters.careerId && filters.careerId.values.length > 0) {
-                    if (filters.careerId.comparation === ListComparation.Include) {
-                        conditions.push(inArray(passes.careerId, filters.careerId.values));
+            if (pRequest.paymentStatus) {
+                if (pRequest.paymentStatus.type === FilterIncludeExcludeType.Include) {
+                    conditions.push(inArray(passes.paymentStatus, pRequest.paymentStatus.values as PaymentStatus[]));
+                } else {
+                    conditions.push(notInArray(passes.paymentStatus, pRequest.paymentStatus.values as PaymentStatus[]));
+                }
+            }
+
+            if (pRequest.studentStatus) {
+                if (pRequest.studentStatus.type === FilterIncludeExcludeType.Include) {
+                    conditions.push(inArray(passes.studentStatus, pRequest.studentStatus.values as StudentStatus[]));
+                } else {
+                    conditions.push(notInArray(passes.studentStatus, pRequest.studentStatus.values as StudentStatus[]));
+                }
+            }
+
+            if (pRequest.passStatus) {
+                if (pRequest.passStatus.type === FilterIncludeExcludeType.Include) {
+                    conditions.push(inArray(passes.passStatus, pRequest.passStatus.values as PassStatus[]));
+                } else {
+                    conditions.push(notInArray(passes.passStatus, pRequest.passStatus.values as PassStatus[]));
+                }
+            }
+
+            if (pRequest.totalToPay) {
+                conditions.push(gte(passes.totalToPay, String(pRequest.totalToPay.min)));
+                conditions.push(lte(passes.totalToPay, String(pRequest.totalToPay.max)));
+            }
+            if (pRequest.cashback) {
+                conditions.push(gte(passes.cashback, String(pRequest.cashback.min)));
+                conditions.push(lte(passes.cashback, String(pRequest.cashback.max)));
+            }
+            if (pRequest.endDueDate) {
+                if ('value' in pRequest.endDueDate) {
+                    if (pRequest.endDueDate.comparation === FilterDateComparation.Before) {
+                        conditions.push(lte(passes.endDueDate, pRequest.endDueDate.value));
                     } else {
-                        conditions.push(notInArray(passes.careerId, filters.careerId.values));
+                        conditions.push(gte(passes.endDueDate, pRequest.endDueDate.value));
                     }
                 }
-
-                if (filters.semester) {
-                    if ('singleValue' in filters.semester) {
-                        const condition = buildComparison(passes.semester, filters.semester.singleValue, filters.semester.comparation);
-                        conditions.push(condition);
-                    } else {
-                        conditions.push(inArray(passes.semester, filters.semester.list));
-                    }
-                }
-
-                if (filters.enrollmentYear) {
-                    if ('singleValue' in filters.enrollmentYear) {
-                        const condition = buildComparison(passes.enrollmentYear, filters.enrollmentYear.singleValue, filters.enrollmentYear.comparation);
-                        conditions.push(condition);
-                    } else {
-                        conditions.push(inArray(passes.enrollmentYear, filters.enrollmentYear.list));
-                    }
-                }
-
-                if (filters.totalToPay) {
-                    const condition = buildComparison(passes.totalToPay, String(filters.totalToPay.singleValue), filters.totalToPay.comparation);
-                    conditions.push(condition);
-                }
-
-                if (filters.endDueDate) {
-                    if ('singleDate' in filters.endDueDate) {
-                        const condition = buildComparison(passes.endDueDate, filters.endDueDate.singleDate, filters.endDueDate.comparation);
-                        conditions.push(condition);
-                    } else {
-                        conditions.push(between(passes.endDueDate, filters.endDueDate.startDate, filters.endDueDate.endDate));
-                    }
+                else {
+                    conditions.push(between(passes.endDueDate, pRequest.endDueDate.startDate, pRequest.endDueDate.endDate));
                 }
             }
 
@@ -519,16 +626,16 @@ export class PassRepository {
                 }
             });
 
-            return passesResult.map((pass) => ({
-                ...this.mapToDomain(pass),
+            return passesResult.map((pass) => (this.mapToDomain({
+                ...pass,
                 careerName: pass.career.name,
-            }));
+            })));
         } catch (error) {
             throw errorHandler.handleError(RepositoryErrorType.GET, error);
         }
     }
 
-    public static async getPassesByIds(universityId: string, ids: { uniqueIdentifier: string, careerId: string }[]): Promise<(Pass & { careerName: string })[]> {
+    public static async getPassesByIds(universityId: string, ids: { uniqueIdentifier: string, careerId: string }[]): Promise<(Pass)[]> {
         try {
             if (ids.length === 0) {
                 return [];
@@ -538,11 +645,14 @@ export class PassRepository {
                 ids,
                 DB_CONFIGURATION.CHUNK_SIZES.SIMPLE_QUERY,
                 async (chunk) => {
-                    // Build tuples for composite key matching (uniqueIdentifier, careerId, universityId)
-                    const tuples = chunk.map(id => sql`(${id.uniqueIdentifier}, ${id.careerId}, ${universityId})`);
+                    // Build tuples for composite key matching (uniqueIdentifier, careerId)
+                    const tuples = chunk.map(id => sql`(${id.uniqueIdentifier}, ${id.careerId})`);
 
                     const passesResult = await db.query.passes.findMany({
-                        where: sql`(${passes.uniqueIdentifier}, ${passes.careerId}, ${passes.universityId}) IN (${sql.join(tuples, sql`, `)})`,
+                        where: and(
+                            sql`(${passes.uniqueIdentifier}, ${passes.careerId}) IN (${sql.join(tuples, sql`, `)})`,
+                            eq(passes.universityId, universityId)
+                        ),
                         with: {
                             career: {
                                 columns: {
@@ -552,8 +662,8 @@ export class PassRepository {
                         }
                     });
 
-                    return passesResult.map((pass) => ({
-                        ...this.mapToDomain(pass),
+                    return passesResult.map((pass) => this.mapToDomain({
+                        ...pass,
                         careerName: pass.career.name,
                     }));
                 },
@@ -599,7 +709,7 @@ export class PassRepository {
                         paymentStatus: PaymentStatus.Paid,
                         totalToPay: '0',
                         updatedAt: new Date()
-                    }).where(sql`(${passes.uniqueIdentifier}, ${passes.careerId}) IN (${sql.join(tuples, sql`, `)})`);
+                    }).where(sql`(${passes.uniqueIdentifier}, ${passes.careerId}, ${passes.universityId}) IN (${sql.join(tuples, sql`, `)})`);
                     return result.rowCount || 0;
                 },
                 DB_CONFIGURATION.CONNECTION.MAX_CONCURRENT_CHUNKS
@@ -620,6 +730,7 @@ export class PassRepository {
                         uniqueIdentifier: item.uniqueIdentifier,
                         careerId: item.careerId,
                         totalToPay: String(item.totalToPay),
+                        cashback: String(0), // Cashback is 0  since we dont care about this value for this update
                         endDueDate: item.endDueDate
                     }))
                     await db.insert(passUpdates).values(updateData.map(item => ({
@@ -712,7 +823,7 @@ export class PassRepository {
                     const result = await db.update(passes).set({
                         notificationCount: sql`${passes.notificationCount} + 1`,
                         lastNotificationDate: now
-                    }).where(sql`(${passes.uniqueIdentifier}, ${passes.careerId}) IN (${sql.join(tuples, sql`, `)})`);
+                    }).where(sql`(${passes.uniqueIdentifier}, ${passes.careerId}, ${passes.universityId}) IN (${sql.join(tuples, sql`, `)})`);
                     return result.rowCount || 0;
                 },
                 DB_CONFIGURATION.CONNECTION.MAX_CONCURRENT_CHUNKS
@@ -749,18 +860,23 @@ export class PassRepository {
         }
     }
 
-    public static async update_InformationField(universityId: string, ids: { uniqueIdentifier: string, careerId: string }[], informationField: string): Promise<number> {
+    public static async update_InformationFieldParallel(universityId: string, ids: { uniqueIdentifier: string, careerId: string }[], informationField: string): Promise<number> {
         try {
             return await processChunksInParallelWithSum(
                 ids,
                 DB_CONFIGURATION.CHUNK_SIZES.SIMPLE_UPDATE,
                 async (chunk) => {
-                    // Build tuples for composite key matching
-                    const tuples = chunk.map(id => sql`(${id.uniqueIdentifier}, ${id.careerId}, ${universityId})`);
+                    // Build tuples for composite key matching (uniqueIdentifier, careerId)
+                    const tuples = chunk.map(id => sql`(${id.uniqueIdentifier}, ${id.careerId})`);
 
                     const result = await db.update(passes).set({
                         informationField,
-                    }).where(sql`(${passes.uniqueIdentifier}, ${passes.careerId}, ${universityId}) IN (${sql.join(tuples, sql`, `)})`);
+                    }).where(
+                        and(
+                            sql`(${passes.uniqueIdentifier}, ${passes.careerId}) IN (${sql.join(tuples, sql`, `)})`,
+                            eq(passes.universityId, universityId)
+                        )
+                    );
                     return result.rowCount || 0;
                 },
                 DB_CONFIGURATION.CONNECTION.MAX_CONCURRENT_CHUNKS
@@ -770,12 +886,57 @@ export class PassRepository {
         }
     }
 
-    public static mapToDomain(pass: typeof passes.$inferSelect): Pass {
+    public static async updateMany_Cashback(universityId: string, req: UpdateCashback[]): Promise<number> {
+        try {
+            const result = await processChunksInParallelWithSum(
+                req,
+                DB_CONFIGURATION.CHUNK_SIZES.COMPLEX_UPDATE,
+                async (chunk) => {
+                    // Insert update data into the auxiliary table
+                    const updateData = chunk.map(item => ({
+                        uniqueIdentifier: item.uniqueIdentifier,
+                        careerId: item.careerId,
+                        totalToPay: String(0), // Total to pay is 0  since we dont care about this value for this update
+                        cashback: String(item.cashback),
+                        endDueDate: new Date() // End due date is the current date since we dont care about this value for this update
+                    }))
+                    await db.insert(passUpdates).values(updateData.map(item => ({
+                        ...item,
+                        universityId,
+                    })));
+
+                    // Perform bulk update using JOIN with the auxiliary table
+                    const result = await db.update(passes).set({
+                        cashback: passUpdates.cashback,
+                        updatedAt: new Date()
+                    }).from(passUpdates).where(
+                        and(
+                            eq(passUpdates.uniqueIdentifier, passes.uniqueIdentifier),
+                            eq(passUpdates.careerId, passes.careerId),
+                            eq(passUpdates.universityId, passes.universityId)
+                        )
+                    )
+                    return result.rowCount || 0;
+                },
+                DB_CONFIGURATION.CONNECTION.MAX_CONCURRENT_CHUNKS
+            );
+
+            // Clean THE WHOLE auxiliary table
+            await db.delete(passUpdates);
+
+            return result;
+        } catch (error) {
+            throw errorHandler.handleError(RepositoryErrorType.UPDATE, error);
+        }
+    }
+
+    public static mapToDomain(pass: typeof passes.$inferSelect & { careerName: string }): Pass {
         return {
             uniqueIdentifier: pass.uniqueIdentifier,
             name: pass.name,
             email: pass.email,
             universityId: pass.universityId,
+            careerName: pass.careerName,
             careerId: pass.careerId,
             semester: pass.semester,
             enrollmentYear: pass.enrollmentYear,
@@ -799,6 +960,8 @@ export class PassRepository {
             photo1Url: pass.photo1Url,
             photo2Url: pass.photo2Url,
             photo3Url: pass.photo3Url,
+            photoGoogleHeroUrl: pass.photoGoogleHeroUrl,
+            qrCodeUrl: pass.qrCodeUrl,
             createdAt: pass.createdAt,
             updatedAt: pass.updatedAt,
         }
@@ -819,25 +982,6 @@ export class PassRepository {
             lastNotificationDate: pass.lastNotificationDate,
             createdAt: pass.createdAt,
             updatedAt: pass.updatedAt,
-        }
-    }
-
-    public static mapToDomain_SimplePass_Extra(pass: SimplePassSelectType & { careerName: string }): SimplePass_Extra {
-        return {
-            uniqueIdentifier: pass.uniqueIdentifier,
-            careerId: pass.careerId,
-            universityId: pass.universityId,
-            cashback: Number(pass.cashback),
-            status: pass.passStatus,
-            googleWalletObjectID: pass.googleWalletObjectId,
-            appleWalletSerialNumber: pass.appleWalletSerialNumber,
-            googleWalletInstallationStatus: pass.googleInstallationStatus,
-            appleWalletInstallationStatus: pass.appleInstallationStatus,
-            notificationCount: pass.notificationCount,
-            lastNotificationDate: pass.lastNotificationDate,
-            createdAt: pass.createdAt,
-            updatedAt: pass.updatedAt,
-            careerName: pass.careerName,
         }
     }
 }

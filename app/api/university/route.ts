@@ -1,4 +1,5 @@
 import { UniversityService } from "@/backend/services/university-service";
+import { universityPaginationRequestSchema, UniversityPaginationRequest } from "@/domain/FilteredPagination";
 import { PaginationRequest } from "mimmers-core-nodejs";
 import { NextResponse } from "next/server";
 import { createUniversitySchema } from "pases-universitarios";
@@ -10,11 +11,17 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const page = Number(searchParams.get("page")) || 0;
         const size = Number(searchParams.get("size")) || 10;
+        const sortName = searchParams.get("sortName") || undefined;
+        const sortCreatedAt = searchParams.get("sortCreatedAt") || undefined;
+        const sortUpdatedAt = searchParams.get("sortUpdatedAt") || undefined;
 
-        const pRequest: PaginationRequest = {
+        const pRequest = universityPaginationRequestSchema.parse({
             page,
-            size
-        }
+            size,
+            sortName,
+            sortCreatedAt,
+            sortUpdatedAt
+        })
 
         const universities = await UniversityService.getPaginatedUniversities(pRequest);
         return NextResponse.json(universities);

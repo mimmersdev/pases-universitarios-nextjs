@@ -2,9 +2,10 @@ import { Career, CreateCareer, UpdateCareer } from "pases-universitarios";
 import { db } from "../config";
 import { careers } from "../schema";
 import { RepositoryErrorOrigin, RepositoryErrorType } from "@/domain/Error";
-import { and, count, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, inArray, notInArray, or, SQL } from "drizzle-orm";
 import { ErrorHandler_Repository } from "./ErrorHandler";
 import { PaginationRequest, PaginationResponse } from "mimmers-core-nodejs";
+import { CareerPaginationRequest, FilterType, SortType } from "@/domain/FilteredPagination";
 
 const errorHandler = new ErrorHandler_Repository(RepositoryErrorOrigin.CAREERS);
 
@@ -36,11 +37,60 @@ export class CareerRepository {
         }
     }
 
-    public static async getPaginatedCareers(universityId: string, pRequest: PaginationRequest): Promise<PaginationResponse<Career>> {
+    public static async getPaginatedCareers(universityId: string, pRequest: CareerPaginationRequest): Promise<PaginationResponse<Career>> {
         try {
+            const sortContiditions: SQL[] = [];
+            if(pRequest.sortCode) {
+                if(pRequest.sortCode === SortType.ASC) {
+                    sortContiditions.push(asc(careers.code));
+                } else {
+                    sortContiditions.push(desc(careers.code));
+                }
+            }
+            if(pRequest.sortName) {
+                if(pRequest.sortName === SortType.ASC) {
+                    sortContiditions.push(asc(careers.name));
+                } else {
+                    sortContiditions.push(desc(careers.name));
+                }
+            }
+            if(pRequest.sortCreatedAt) {
+                if(pRequest.sortCreatedAt === SortType.ASC) {
+                    sortContiditions.push(asc(careers.createdAt));
+                } else {
+                    sortContiditions.push(desc(careers.createdAt));
+                }
+            }
+            if(pRequest.sortUpdatedAt) {
+                if(pRequest.sortUpdatedAt === SortType.ASC) {
+                    sortContiditions.push(asc(careers.updatedAt));
+                } else {
+                    sortContiditions.push(desc(careers.updatedAt));
+                }
+            }
+
+            // If there are no sort conditions, default to createdAt ascending
+            if(sortContiditions.length === 0) {
+                sortContiditions.push(asc(careers.createdAt));
+            }
+
+            // Filters
+            const filtersConditions: SQL[] = [];
+            if(pRequest.searchName) {
+                // Search in both name and code
+                filtersConditions.push(
+                    or(
+                        ilike(careers.name, `%${pRequest.searchName}%`),
+                        ilike(careers.code, `%${pRequest.searchName}%`)
+                    )!
+                );
+            }
+
+            const whereClause = and(eq(careers.universityId, universityId), ...filtersConditions);
+
             const [result, total] = await Promise.all([
-                db.select().from(careers).where(eq(careers.universityId, universityId)).limit(pRequest.size).offset(pRequest.page * pRequest.size),
-                db.select({ count: count() }).from(careers).where(eq(careers.universityId, universityId))
+                db.select().from(careers).where(whereClause).orderBy(...sortContiditions).limit(pRequest.size).offset(pRequest.page * pRequest.size),
+                db.select({ count: count() }).from(careers).where(whereClause)
             ]);
             return {
                 content: result.map(this.mapToDomain),
