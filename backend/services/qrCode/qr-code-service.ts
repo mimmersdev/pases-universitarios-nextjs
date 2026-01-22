@@ -1,6 +1,7 @@
-import QRCodeStyling, { Options } from "qr-code-styling"
+import QRCodeStyling from "qr-code-styling"
 import { JSDOM } from "jsdom"
 import nodeCanvas from "canvas"
+import sharp from "sharp"
 import { S3Service, S3_Folders } from "../s3/s3";
 
 export class QRCodeService {
@@ -9,13 +10,13 @@ export class QRCodeService {
         const qrCodeUrl = await S3Service.uploadBuffer(qrCodeBuffer, 'image/png', S3_Folders.QR_CODES);
         return qrCodeUrl;
     }
-    
+
     private static async generateQRCode(url: string): Promise<Buffer> {
         try {
             const qrCode = new QRCodeStyling({
                 jsdom: JSDOM,
                 nodeCanvas,
-                type: "canvas",
+                type: "svg",  // Use SVG for serverless compatibility
                 shape: "square",
                 width: 300,
                 height: 300,
@@ -53,24 +54,20 @@ export class QRCodeService {
                 }
             });
 
-            const rawData = await qrCode.getRawData("png");
+            const rawData = await qrCode.getRawData("svg");
 
             if (!rawData) {
                 throw new Error("Failed to generate QR code: no data returned");
             }
 
-            // In Node.js, getRawData returns a Buffer when using nodeCanvas
-            if (Buffer.isBuffer(rawData)) {
-                return rawData;
-            }
+            // Convert SVG to PNG using sharp (works in serverless)
+            const svgString = rawData.toString();
+            const pngBuffer = await sharp(Buffer.from(svgString))
+                .resize(300, 300)
+                .png()
+                .toBuffer();
 
-            // If it's a Blob (browser environment), convert to Buffer
-            if (rawData instanceof Blob) {
-                const arrayBuffer = await rawData.arrayBuffer();
-                return Buffer.from(arrayBuffer);
-            }
-
-            throw new Error(`Unexpected data type returned from QR code generator: ${typeof rawData}`);
+            return pngBuffer;
         } catch (error) {
             console.log(error);
             throw new Error(`Failed to generate QR code: ${error instanceof Error ? error.message : String(error)}`);
