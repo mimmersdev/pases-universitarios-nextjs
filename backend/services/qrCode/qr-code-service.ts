@@ -1,6 +1,4 @@
-import QRCodeStyling from "qr-code-styling"
-import { JSDOM } from "jsdom"
-import sharp from "sharp"
+import QRCode from "qrcode";
 import { S3Service, S3_Folders } from "../s3/s3";
 
 export class QRCodeService {
@@ -12,50 +10,19 @@ export class QRCodeService {
 
     private static async generateQRCode(url: string): Promise<Buffer> {
         try {
-            // SVG type with jsdom only (no nodeCanvas needed, no logo)
-            const qrCode = new QRCodeStyling({
-                jsdom: JSDOM,
-                type: "svg",
+            // Generate QR code as PNG buffer using qrcode library (pure JS, serverless compatible)
+            const qrBuffer = await QRCode.toBuffer(url, {
+                errorCorrectionLevel: 'Q',
+                type: 'png',
                 width: 300,
-                height: 300,
-                data: url,
-                margin: 0,
-                qrOptions: {
-                    typeNumber: 0,
-                    mode: "Byte",
-                    errorCorrectionLevel: "Q"
+                margin: 1,
+                color: {
+                    dark: '#000000',
+                    light: '#ffffff',
                 },
-                dotsOptions: {
-                    type: "rounded",
-                    color: "#000000",
-                },
-                backgroundOptions: {
-                    color: "#ffffff"
-                },
-                cornersSquareOptions: {
-                    type: "extra-rounded",
-                    color: "#fd673f"
-                },
-                cornersDotOptions: {
-                    type: "dot",
-                    color: "#000000"
-                }
             });
 
-            const rawData = await qrCode.getRawData("svg");
-
-            if (!rawData) {
-                throw new Error("Failed to generate QR code: no data returned");
-            }
-
-            // Convert SVG to PNG using sharp (works in serverless)
-            const svgString = rawData.toString();
-            const pngBuffer = await sharp(Buffer.from(svgString))
-                .resize(300, 300)
-                .png()
-                .toBuffer();
-
-            return pngBuffer;
+            return qrBuffer;
         } catch (error) {
             console.log(error);
             throw new Error(`Failed to generate QR code: ${error instanceof Error ? error.message : String(error)}`);
