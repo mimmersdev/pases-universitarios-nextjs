@@ -2,10 +2,10 @@ import { Career, CreateCareer, UpdateCareer } from "pases-universitarios";
 import { db } from "../config";
 import { careers } from "../schema";
 import { RepositoryErrorOrigin, RepositoryErrorType } from "@/domain/Error";
-import { and, asc, count, desc, eq, ilike, inArray, notInArray, or, SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, or, SQL } from "drizzle-orm";
 import { ErrorHandler_Repository } from "./ErrorHandler";
-import { PaginationRequest, PaginationResponse } from "mimmers-core-nodejs";
-import { CareerPaginationRequest, FilterType, SortType } from "@/domain/FilteredPagination";
+import { PaginationResponse } from "mimmers-core-nodejs";
+import { CareerPaginationRequest, SortType } from "@/domain/FilteredPagination";
 
 const errorHandler = new ErrorHandler_Repository(RepositoryErrorOrigin.CAREERS);
 

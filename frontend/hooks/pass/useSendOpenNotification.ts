@@ -25,10 +25,6 @@ const sendOpenNotification = async (
         params.semesterType = pRequest.semester.type;
         params.semesterValues = pRequest.semester.values;
     }
-    if (pRequest.enrollmentYear) {
-        params.enrollmentYearType = pRequest.enrollmentYear.type;
-        params.enrollmentYearValues = pRequest.enrollmentYear.values;
-    }
     if (pRequest.paymentStatus) {
         params.paymentStatusType = pRequest.paymentStatus.type;
         params.paymentStatusValues = pRequest.paymentStatus.values;
@@ -43,6 +39,10 @@ const sendOpenNotification = async (
     }
 
     // Range filters
+    if (pRequest.enrollmentYear) {
+        params.enrollmentYearMin = pRequest.enrollmentYear.min;
+        params.enrollmentYearMax = pRequest.enrollmentYear.max;
+    }
     if (pRequest.totalToPay) {
         params.totalToPayMin = pRequest.totalToPay.min;
         params.totalToPayMax = pRequest.totalToPay.max;

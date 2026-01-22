@@ -64,10 +64,6 @@ export async function POST(
             searchParams.get("semesterType"),
             "semesterValues"
         );
-        pRequest.enrollmentYear = reconstructIncludeExcludeFilter(
-            searchParams.get("enrollmentYearType"),
-            "enrollmentYearValues"
-        );
         pRequest.paymentStatus = reconstructIncludeExcludeFilter(
             searchParams.get("paymentStatusType"),
             "paymentStatusValues"
@@ -82,6 +78,15 @@ export async function POST(
         );
 
         // Range filters
+        const enrollmentYearMin = searchParams.get("enrollmentYearMin");
+        const enrollmentYearMax = searchParams.get("enrollmentYearMax");
+        if (enrollmentYearMin && enrollmentYearMax) {
+            pRequest.enrollmentYear = {
+                min: Number(enrollmentYearMin),
+                max: Number(enrollmentYearMax),
+            };
+        }
+
         const totalToPayMin = searchParams.get("totalToPayMin");
         const totalToPayMax = searchParams.get("totalToPayMax");
         if (totalToPayMin && totalToPayMax) {
