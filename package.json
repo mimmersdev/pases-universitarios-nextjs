@@ -25,7 +25,7 @@
     "drizzle-orm": "^0.44.7",
     "framer-motion": "^12.23.24",
     "mimmers-core-nodejs": "github:mimmersdev/mimmers-core-nodejs",
-    "next": "16.0.0",
+    "next": "16.0.10",
     "pases-universitarios": "github:mimmersdev/pases-universitarios",
     "pg": "^8.16.3",
     "react": "19.2.0",
