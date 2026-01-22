@@ -1,6 +1,5 @@
 import QRCodeStyling from "qr-code-styling"
 import { JSDOM } from "jsdom"
-import nodeCanvas from "canvas"
 import sharp from "sharp"
 import { S3Service, S3_Folders } from "../s3/s3";
 
@@ -13,11 +12,10 @@ export class QRCodeService {
 
     private static async generateQRCode(url: string): Promise<Buffer> {
         try {
+            // SVG type with jsdom only (no nodeCanvas needed, no logo)
             const qrCode = new QRCodeStyling({
                 jsdom: JSDOM,
-                nodeCanvas,
-                type: "svg",  // Use SVG for serverless compatibility
-                shape: "square",
+                type: "svg",
                 width: 300,
                 height: 300,
                 data: url,
@@ -27,29 +25,19 @@ export class QRCodeService {
                     mode: "Byte",
                     errorCorrectionLevel: "Q"
                 },
-                imageOptions: {
-                    saveAsBlob: true,
-                    hideBackgroundDots: true,
-                    imageSize: 0.4,
-                    margin: 5,
-                    crossOrigin: "anonymous"
-                },
                 dotsOptions: {
                     type: "rounded",
                     color: "#000000",
-                    roundSize: true,
                 },
                 backgroundOptions: {
-                    round: 0,
                     color: "#ffffff"
                 },
-                image: process.env.QR_CODE_LOGO_URL!,
                 cornersSquareOptions: {
-                    type: "rounded",
+                    type: "extra-rounded",
                     color: "#fd673f"
                 },
                 cornersDotOptions: {
-                    type: "rounded",
+                    type: "dot",
                     color: "#000000"
                 }
             });
