@@ -20,8 +20,6 @@ export class GoogleManagerService {
             });
         }
 
-        console.log(S3Service.getImageUrl(pass.photo3Url));
-
         return {
             cardTitle: careerName,
             header: pass.name,

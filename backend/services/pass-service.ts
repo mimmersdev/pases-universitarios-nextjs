@@ -19,21 +19,10 @@ import { ZeptoManager } from "./zepto/zepto-manager";
 import { PassSSEEvent, PassSSEEvents } from "@/domain/SSEEvents";
 import { QRCodeService } from "./qrCode/qr-code-service";
 import fs from 'fs/promises';
+import { S3Service } from "./s3/s3";
 
 const errorHandler = new ErrorHandler_Service(ServiceErrorOrigin.PASSES);
 export class PassService {
-    // public static async createPass(universityId: string, req: CreatePass): Promise<Pass> {
-    //     const { originalUrl, reducedBy2Url, reducedBy3Url, googleHeroUrl } = await ImageService.getAndProcessImage(req.photoUrl);
-    //     const pass = await PassRepository.createPass(universityId, {
-    //         ...req,
-    //         photo1Url: reducedBy3Url,
-    //         photo2Url: reducedBy2Url,
-    //         photo3Url: originalUrl,
-    //         photoGoogleHeroUrl: googleHeroUrl,
-    //     });
-    //     return pass;
-    // }
-
     public static async createMany(universityId: string, req: CreatePass[], onEvent?: (event: PassSSEEvent) => void): Promise<number> {
         const total = req.length;
         let processed = 0;
@@ -61,6 +50,23 @@ export class PassService {
             onEvent?.(PassSSEEvents.progress(processed, total));
         }
 
+        const processImages = async (photoUrl: string) => {
+            try {
+                return await ImageService.getAndProcessImage(photoUrl);
+
+            } catch {
+                throw new Error("Error al procesar la imagen. ¿Si está disponible la imagen?")
+            }
+        }
+
+        const generateQR = async (qrUrl: string) => {
+            try {
+                return await QRCodeService.generateAndUploadQRCode(qrUrl);
+            } catch {
+                throw new Error("Error al generar el QR.")
+            }
+        }
+
         const count = await processChunksInParallelWithSum(
             filteredReq,
             DB_CONFIGURATION.CHUNK_SIZES.COMPLEX_INSERT,
@@ -68,11 +74,11 @@ export class PassService {
                 const results = await Promise.allSettled(
                     chunk.map(async (i) => {
                         try {
-                            const imageUrls = await ImageService.getAndProcessImage(i.photoUrl);
-                            
+                            const imageUrls = await processImages(i.photoUrl);
+
                             const qrCodeUrl = `${process.env.NEXT_PUBLIC_ORIGIN!}/install/${universityId}/${i.uniqueIdentifier}/${i.careerId}`;
-                            const qrCodeUrlS3 = await QRCodeService.generateAndUploadQRCode(qrCodeUrl);
-                            
+                            const qrCodeUrlS3 = await generateQR(qrCodeUrl);
+
                             const result: CreatePassBackend = {
                                 ...i,
                                 photo1Url: imageUrls.reducedBy3Url,
@@ -81,11 +87,19 @@ export class PassService {
                                 photoGoogleHeroUrl: imageUrls.googleHeroUrl,
                                 qrCodeUrl: qrCodeUrlS3,
                             };
+
                             return { success: true, data: result };
                         } catch (error) {
+                            // TODO: Search and delete images related to this pass. Have to think how to since the URLs generated are random
                             console.error(error);
-                            console.error("Error processing image");
-                            const errorMessage = "Error al procesar la imagen. ¿Si está disponible la imagen?";
+
+                            const errorMessage = (() => {
+                                if (error instanceof Error) {
+                                    return error.message
+                                }
+                                return "Error desconocido. Por favor contactar administración."
+                            })();
+
                             errors.push({
                                 universityId: universityId,
                                 uniqueIdentifier: i.uniqueIdentifier,
@@ -112,6 +126,25 @@ export class PassService {
                         r.status === 'fulfilled' && r.value.success === false
                     );
 
+                // Send emails for passes without errors
+                await processChunksInParallel(
+                    successfulItems,
+                    100,
+                    async (chunk) => {
+                        try {
+                            const data = chunk.map(d => ({
+                                email: d.email,
+                                name: d.name,
+                                install_url: `${process.env.NEXT_PUBLIC_ORIGIN!}/install/${universityId}/${d.uniqueIdentifier}/${d.careerId}`,
+                                qr_url: S3Service.getImageUrl(d.qrCodeUrl)
+                            }))
+                            await ZeptoManager.sendTestEmail(data);
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    },
+                    3
+                );
 
                 const dbResults = successfulItems.length > 0 ? await PassRepository.createMany(universityId, successfulItems) : 0;
                 processed += chunk.length;
@@ -282,6 +315,15 @@ export class PassService {
 
     private static async getInstallLink_Google(googleWalletManager: GoogleWalletManager, universityData: University, data: Pass, careerData: Career, objectId: string, classId: string): Promise<string> {
         const googleProps = await GoogleManagerService.getGoogleWalletIssuePropsFromPass(universityData, careerData.name, data);
+
+        console.log('=== Google Wallet Debug ===');
+        console.log('classId:', classId);
+        console.log('objectId:', objectId);
+        console.log('origin:', process.env.NEXT_PUBLIC_ORIGIN);
+        console.log('heroUri:', googleProps.heroUri);
+        console.log('logoUri:', googleProps.logoUri);
+        console.log('barcode:', googleProps.barcode);
+        console.log('===========================');
 
         const installLink = await googleWalletManager.createPass(objectId, classId, googleProps, process.env.NEXT_PUBLIC_ORIGIN!);
 

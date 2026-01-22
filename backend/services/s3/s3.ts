@@ -59,6 +59,7 @@ const retryWithBackoff = async <T>(
 };
 
 const s3Client = new S3Client({
+    endpoint: process.env.AWS_ENDPOINT,
     region: process.env.AWS_REGION,
     credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
@@ -66,6 +67,7 @@ const s3Client = new S3Client({
     },
     // Configure retry strategy for rate limits
     maxAttempts: 3,
+    forcePathStyle: true,
 })
 
 const putParams = (fileName: string, contentType: string, body: Buffer<ArrayBufferLike>): PutObjectCommandInput => {
@@ -96,7 +98,7 @@ const getRandomFileName = (extension: string) => {
 
 export class S3Service {
     public static getImageUrl(filePath: string): string {
-        return `https://avex-rutapro.s3.us-east-1.amazonaws.com/${this.getEnvironmentFolder()}/${filePath}`;
+        return `https://${process.env.AWS_BUCKET_NAME}.s3.avex.com.co/${this.getEnvironmentFolder()}/${filePath}`;
     }
     /**
      * Uploads a buffer to S3 and returns the file path
@@ -119,7 +121,7 @@ export class S3Service {
                 const command = new PutObjectCommand(putParams(fullFilePath, mimetype, buffer));
                 await s3Client.send(command);
             });
-            
+
             return filePath;
         } catch (error) {
             throw errorHandler.handleError(S3ErrorType.UPLOAD_FAILED, error);
@@ -161,10 +163,11 @@ export class S3Service {
     }
 
     private static getEnvironmentFolder() {
+        const projectPrefix = 'rutapro'
         if (process.env.NODE_ENV === 'production') {
-            return 'production';
+            return `${projectPrefix}/production`;
         } else {
-            return 'development';
+            return `${projectPrefix}/development`;
         }
     }
 }

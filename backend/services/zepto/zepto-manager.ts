@@ -10,6 +10,7 @@ export class ZeptoManager {
         email: string;
         name: string;
         install_url: string;
+        qr_url: string;
     }[]): Promise<void> {
         try {
             const options: TemplateBatchParams = {
@@ -25,6 +26,7 @@ export class ZeptoManager {
                     merge_info: {
                         user_name: d.name,
                         install_url: d.install_url,
+                        qr_url: d.qr_url
                     },
                 })),
                 mail_template_key: "2d6f.493a40309dc0d638.k1.25ba0dd0-cdaa-11f0-822d-2640018fa9ad.19ad3268f2d",
