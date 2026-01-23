@@ -219,6 +219,14 @@ export const listTags = pgTable('list_tags', {
     }),
 ]);
 
+export const users = pgTable('users', {
+    id: uuid('id').default(sql`gen_random_uuid()`).primaryKey(),
+    username: text('user_name').notNull(),
+    password: text('password').notNull(),
+}, (t) => [
+    unique('uq_user_name').on(t.username),
+])
+
 // Relations
 
 export const universitiesRelations = relations(universities, ({ many }) => ({

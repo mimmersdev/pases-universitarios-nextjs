@@ -1,11 +1,14 @@
+import AuthProvider from "@/frontend/providers/auth-provider";
 import { Sidebar } from "../components/Sidebar";
 
-const UniversitiesLayout = ({ children }: { children: React.ReactNode }) => {
+const InternalLayout = ({ children }: { children: React.ReactNode }) => {
     return (
-        <Sidebar>
-            {children}
-        </Sidebar>
+        <AuthProvider>
+            <Sidebar>
+                {children}
+            </Sidebar>
+        </AuthProvider>
     );
 }
 
-export default UniversitiesLayout;
+export default InternalLayout;

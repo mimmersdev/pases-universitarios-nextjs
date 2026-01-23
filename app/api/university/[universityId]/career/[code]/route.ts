@@ -1,4 +1,5 @@
 import { CareerService } from "@/backend/services/career-service";
+import { authMiddleware } from "@/backend/services/utils/authMiddleware";
 import { NextResponse } from "next/server";
 import { updateCareerSchema } from "pases-universitarios";
 import { z } from "zod/v4";
@@ -8,6 +9,11 @@ export async function GET(
     context: { params: Promise<{ universityId: string, code: string }> }
 ) {
     try {
+        const auth = await authMiddleware();
+        if (auth instanceof NextResponse) {
+            return auth;
+        }
+
         const { universityId, code } = await context.params;
         const career = await CareerService.getCareer(universityId, code);
         return NextResponse.json(career);
@@ -24,6 +30,11 @@ export async function PUT(
     context: { params: Promise<{ universityId: string, code: string }> }
 ) {
     try {
+        const auth = await authMiddleware();
+        if (auth instanceof NextResponse) {
+            return auth;
+        }
+
         const { universityId, code } = await context.params;
         const body = await request.json();
         const validatedBody = updateCareerSchema.parse(body);

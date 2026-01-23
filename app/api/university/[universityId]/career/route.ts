@@ -1,4 +1,5 @@
 import { CareerService } from "@/backend/services/career-service";
+import { authMiddleware } from "@/backend/services/utils/authMiddleware";
 import { careerPaginationRequestSchema } from "@/domain/FilteredPagination";
 import { PaginationRequest } from "mimmers-core-nodejs";
 import { NextResponse } from "next/server";
@@ -11,6 +12,11 @@ export async function GET(
     context: { params: Promise<{ universityId: string }> }
 ) {
     try {
+        const auth = await authMiddleware();
+        if (auth instanceof NextResponse) {
+            return auth;
+        }
+
         //read query params
         const { universityId } = await context.params;
         const { searchParams } = new URL(request.url);
@@ -47,6 +53,11 @@ export async function POST(
     context: { params: Promise<{ universityId: string }> }
 ) {
     try {
+        const auth = await authMiddleware();
+        if (auth instanceof NextResponse) {
+            return auth;
+        }
+
         const { universityId } = await context.params;
         const body = await request.json();
         const validatedBody = createCareerSchema.parse(body);

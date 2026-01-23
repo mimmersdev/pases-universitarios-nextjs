@@ -1,4 +1,5 @@
 import { UniversityService } from "@/backend/services/university-service";
+import { authMiddleware } from "@/backend/services/utils/authMiddleware";
 import { NextResponse } from "next/server";
 import { updateUniversitySchema } from "pases-universitarios";
 import { z } from "zod/v4";
@@ -8,6 +9,11 @@ export async function GET(
     context: { params: Promise<{ universityId: string }> }
 ) {
     try {
+        const auth = await authMiddleware();
+        if (auth instanceof NextResponse) {
+            return auth;
+        }
+
         const { universityId } = await context.params;
         const university = await UniversityService.getUniversity(universityId);
         return NextResponse.json(university);
@@ -24,6 +30,11 @@ export async function PUT(
     context: { params: Promise<{ universityId: string }> }
 ) {
     try {
+        const auth = await authMiddleware();
+        if (auth instanceof NextResponse) {
+            return auth;
+        }
+
         const { universityId } = await context.params;
         const body = await request.json();
         const validatedBody = updateUniversitySchema.parse(body);

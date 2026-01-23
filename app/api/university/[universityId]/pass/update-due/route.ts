@@ -1,4 +1,5 @@
 import { PassService } from "@/backend/services/pass-service";
+import { authMiddleware } from "@/backend/services/utils/authMiddleware";
 import { parseExcelFile } from "@/utils";
 import { updatePassDueExcelFieldDefinitions } from "@/utils/pass-excel-fields";
 import { NextResponse } from "next/server";
@@ -10,6 +11,11 @@ export async function POST(
     context: { params: Promise<{ universityId: string }> }
 ) {
     try {
+        const auth = await authMiddleware();
+        if (auth instanceof NextResponse) {
+            return auth;
+        }
+
         const { universityId } = await context.params;
 
         // Parse multipart/form-data

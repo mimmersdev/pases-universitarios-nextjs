@@ -1,11 +1,5 @@
-"use client";
-
-import Image from "next/image";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <div>
-      <h1>Dashboard</h1>
-    </div>
-  );
+  redirect("/auth/login");
 }

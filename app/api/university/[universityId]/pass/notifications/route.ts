@@ -1,4 +1,5 @@
 import { PassService } from "@/backend/services/pass-service";
+import { authMiddleware } from "@/backend/services/utils/authMiddleware";
 import { FilterDateComparation, FilteredPaginationRequest, filteredPaginationRequestSchema, FilterIncludeExcludeType, passPaginationRequestSchema } from "@/domain/FilteredPagination";
 import { NextResponse } from "next/server";
 import { z } from "zod/v4";
@@ -13,6 +14,11 @@ export async function POST(
     context: { params: Promise<{ universityId: string }> }
 ) {
     try {
+        const auth = await authMiddleware();
+        if (auth instanceof NextResponse) {
+            return auth;
+        }
+
         const { universityId } = await context.params;
         const body = await request.json() as SendNotificationRequest;
         

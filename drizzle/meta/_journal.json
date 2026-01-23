@@ -15,6 +15,13 @@
       "when": 1767119713005,
       "tag": "0001_careful_george_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769183956282,
+      "tag": "0002_sudden_swordsman",
+      "breakpoints": true
     }
   ]
 }

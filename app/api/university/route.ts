@@ -1,4 +1,5 @@
 import { UniversityService } from "@/backend/services/university-service";
+import { authMiddleware } from "@/backend/services/utils/authMiddleware";
 import { universityPaginationRequestSchema, UniversityPaginationRequest } from "@/domain/FilteredPagination";
 import { PaginationRequest } from "mimmers-core-nodejs";
 import { NextResponse } from "next/server";
@@ -7,6 +8,12 @@ import { z } from "zod/v4";
 
 export async function GET(request: Request) {
     try {
+        const auth = await authMiddleware();
+
+        if (auth instanceof NextResponse) {
+            return auth;
+        }
+
         //read query params
         const { searchParams } = new URL(request.url);
         const page = Number(searchParams.get("page")) || 0;
@@ -35,6 +42,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
+        const auth = await authMiddleware();
+
+        if (auth instanceof NextResponse) {
+            return auth;
+        }
+
         const body = await request.json();
         const validatedBody = createUniversitySchema.parse(body);
         const result = await UniversityService.createUniversity(validatedBody);

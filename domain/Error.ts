@@ -27,7 +27,8 @@ export enum RepositoryErrorOrigin {
    TAG_BOOLEAN = '008',
    TAG_LIST = '009',
    CONFIG = '010',
-   APPLE_DEVICE = '011'
+   APPLE_DEVICE = '011',
+   USERS = '012'
 }
 
 export class RepositoryError extends Error implements UserReadableError {

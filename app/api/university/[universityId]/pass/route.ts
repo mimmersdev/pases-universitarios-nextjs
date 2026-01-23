@@ -1,4 +1,5 @@
 import { PassService } from "@/backend/services/pass-service";
+import { authMiddleware } from "@/backend/services/utils/authMiddleware";
 import { NextResponse } from "next/server";
 import { createManyPassesSchema } from "pases-universitarios";
 import { z } from "zod/v4";
@@ -12,6 +13,11 @@ export async function GET(
     context: { params: Promise<{ universityId: string }> }
 ) {
     try {
+        const auth = await authMiddleware();
+        if (auth instanceof NextResponse) {
+            return auth;
+        }
+
         const { universityId } = await context.params;
         const { searchParams } = new URL(request.url);
 
@@ -142,6 +148,11 @@ export async function POST(
     context: { params: Promise<{ universityId: string }> }
 ) {
     try {
+        const auth = await authMiddleware();
+        if (auth instanceof NextResponse) {
+            return auth;
+        }
+
         const { universityId } = await context.params;
         
         // Parse multipart/form-data
